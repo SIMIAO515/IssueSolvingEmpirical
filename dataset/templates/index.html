@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWE Annotation Website</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .action-card {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .action-header {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: 500;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-content {
+            padding: 20px;
+            background-color: #ffffff;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            color: #333;
+            border-top: none;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+        .annotation-form {
+            padding: 15px;
+            background-color: #fff3cd;
+            border-top: 1px solid #ddd;
+        }
+        .annotated {
+            border-left: 5px solid #28a745;
+        }
+        .data-point-card {
+            margin-bottom: 20px;
+        }
+        .progress-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .category-group-label {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        .sub-category {
+            padding-left: 20px;
+        }
+        .sub-sub-category {
+            padding-left: 40px;
+        }
+        .annotation-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .annotation-item:last-child {
+            margin-bottom: 0;
+        }
+        .annotation-badge {
+            display: inline-block;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .test-stats {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 3px;
+            padding: 4px 6px;
+            margin: 4px 0;
+        }
+        .data-point-card .card-title {
+            font-size: 0.9em;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+        .success-indicator {
+            border-left: 4px solid #28a745;
+        }
+        .failure-indicator {
+            border-left: 4px solid #dc3545;
+        }
+        .unknown-indicator {
+            border-left: 4px solid #6c757d;
+        }
+        
+        /* Round counter styles */
+        .round-counter {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-3">
+        <h1 class="mb-4">SWE Annotation Website</h1>
+        
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Data Points</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 70vh; overflow-y: auto;">
+                        {% for dp in data_points %}
+                        <div class="card data-point-card {{ 'success-indicator' if dp.success == True else ('failure-indicator' if dp.success == False else 'unknown-indicator') }}" data-name="{{ dp.name }}">
+                            <div class="card-body p-2">
+                                <h6 class="card-title">{{ dp.name }}</h6>
+           
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">Status:</small>
+                                        {% if dp.success is not none %}
+                                            <span class="badge {{ 'bg-success' if dp.success else 'bg-danger' }}">
+                                                {{ 'Success' if dp.success else 'Failed' }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Unknown</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">Difficulty:</small>
+                                        <span class="badge bg-info">{{ dp.difficulty }}</span>
+                                    </div>
+                                    
+                                    {% if dp.success is not none %}
+                                    <div class="test-stats" style="font-size: 0.75em;">
+                                        <div class="d-flex justify-content-between">
+                                            <span>P2P: {{ dp.pass_to_pass }}</span>
+                                            <span>P2F: {{ dp.pass_to_fail }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>F2P: {{ dp.fail_to_pass }}</span>
+                                            <span>F2F: {{ dp.fail_to_fail }}</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <span class="text-danger">Failures: {{ dp.test_failures }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Project:</small>
+                                        <span class="badge bg-light text-dark">{{ dp.hierarchy_path }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress-info mb-2">
+                                    <span class="badge bg-secondary" id="progress-{{ dp.name }}">0/0 Annotated</span>
+                                </div>
+                                <button class="btn btn-sm btn-primary" onclick="loadDataPoint('{{ dp.name }}')">
+                                    Load
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+     
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Dataset Statistics Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-success">{{ data_points | selectattr('success', 'equalto', True) | list | length }}</h4>
+                                    <p class="mb-0">Successfully Resolved</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-danger">{{ data_points | selectattr('success', 'equalto', False) | list | length }}</h4>
+                                    <p class="mb-0">Resolution Failed</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-muted">{{ data_points | selectattr('success', 'equalto', None) | list | length }}</h4>
+                                    <p class="mb-0">Status Unknown</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-primary">{{ data_points | length }}</h4>
+                                    <p class="mb-0">Total Data Points</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% set success_count = data_points | selectattr('success', 'equalto', True) | list | length %}
+                        {% set failure_count = data_points | selectattr('success', 'equalto', False) | list | length %}
+                        {% set total_valid = success_count + failure_count %}
+                        {% if total_valid > 0 %}
+                        <div class="mt-3">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ (success_count / total_valid * 100) | round(1) }}%">
+                                    Success Rate: {{ (success_count / total_valid * 100) | round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div id="main-content">
+                    <div class="alert alert-info">
+                        Please select a data point from the left panel to start annotation
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="annotationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Annotate Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+  
+                    <div id="existing-annotations" style="display: none;">
+                        <h6>Existing Annotations:</h6>
+                        <div id="annotation-list"></div>
+                        <hr>
+                    </div>
+                    
+   
+                    <h6>Add New Annotation:</h6>
+                    <form id="annotationForm">
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Issue Category</label>
+                            <select class="form-select" id="category" required>
+                                <option value="">Please select a category</option>
+           
+                                <option value="" disabled class="category-group-label">1. Understanding & Localization Phase Failure</option>
+                                <option value="issue_misleading">1.1 Misleading Issue Description</option>
+                                <option value="superficial_matching" disabled class="sub-category">1.2 Superficial Information Matching</option>
+                                <option value="keywords_location">1.2.1 Description Keyword Location</option>
+                                <option value="referred_code_location">1.2.2 Referenced Code Location</option>
+                                <option value="error_stack_trace">1.2.3 Error Stack Trace</option>
+                        
+                                <option value="" disabled class="category-group-label">2. Fix Implementation Phase</option>
+                                <option value="fix_strategy_defects" disabled class="sub-category">2.1 Fix Strategy Defects</option>
+                                <option value="specific_case_overfitting">2.1.1 Overfitting Specific Cases</option>
+                                <option value="evasive_repair">2.1.2 Evasive Repair</option>
+                                <option value="redundant_erroneous_implementation">2.1.3 Creating Erroneous Redundancy</option>
+                                
+                                <option value="implementation_defects" disabled class="sub-category">2.2 Implementation Technical Defects</option>
+                                <option value="logic_errors" disabled class="sub-sub-category">2.2.1 Logic Errors</option>
+                                <option value="algorithmic_implementation">2.2.1.1 Algorithmic Implementation Errors</option>
+                                <option value="control_flow">2.2.1.2 Control Flow Defects</option>
+                                <option value="boundary_handling">2.2.1.3 Boundary Handling Defects</option>
+                                <option value="data_processing_errors">2.2.2 Data Processing Errors</option>
+                                <option value="insufficient_domain_knowledge">2.2.3 Insufficient Domain Knowledge</option>
+                                
+                                <option value="incomplete_repair" disabled class="sub-category">2.3 Incomplete Repair</option>
+                                <option value="ignoring_explicit_dependencies" disabled class="sub-sub-category">2.3.1 Ignoring Explicit Dependencies</option>
+                                <option value="inheritance">2.3.1.1 Inheritance Relations</option>
+                                <option value="interface_contract">2.3.1.2 Interface Contract</option>
+                                <option value="ignoring_semantic_dependencies" disabled class="sub-sub-category">2.3.2 Ignoring Semantic Dependencies</option>
+                                <option value="component_coordination">2.3.2.1 Component Coordination</option>
+                                <option value="recurring_pattern">2.3.2.2 Recurring Pattern</option>
+                                
+                                <option value="issue_interference">2.4 Issue Interference</option>
+                                
+                 
+                                <option value="" disabled class="category-group-label">3. Iterative Verification Phase</option>
+                                <option value="reproduction_verification_failure" disabled class="sub-category">3.1 Reproduction Verification Failure</option>
+                                <option value="reproduction_script_failure">3.1.1 Reproduction Script Creation Failure</option>
+                                <option value="insufficient_verification_capability">3.1.2 Insufficient Verification Capability</option>
+                                <option value="reproduction_output_misreading">3.1.3 Reproduction Output Misreading</option>
+                                
+                                <option value="iteration_anomalies" disabled class="sub-category">3.2 Interaction Loop Anomalies</option>
+                                <option value="iteration_strategy_defects" disabled class="sub-sub-category">3.2.1 Iteration Strategy Failure</option>
+                                <option value="non_progressive_iteration">3.2.1.1 Non-progressive Iteration</option>
+                                <option value="blindly_strategy_switching">3.2.1.2 Blind Strategy Switching</option>
+                                <option value="validation_retreat" disabled class="sub-sub-category">3.2.2 Validation Retreat</option>
+                                <option value="verification_abandonment">3.2.2.1 Verification Abandonment</option>
+                                <option value="verification_weakening">3.2.2.2 Verification Weakening</option>
+                                
+                                <option value="context_forgetting">3.3 Context Forgetting</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Issue Reason</label>
+                            <textarea class="form-control" id="reason" rows="4" required
+                                 placeholder="Please describe the issue in detail, including specific error manifestations, impact scope, and possible improvement suggestions..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addAnnotation()">Add Annotation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this annotation? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">Confirm Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDataPoint = '';
+        let currentActionIndex = -1;
+        let currentAnnotationId = -1;
+        let allActions = [];
+        let annotations = {};
+
+        function loadDataPoint(dataPointName) {
+            currentDataPoint = dataPointName;
+            
+            // 加载actions
+            $.get(`/get_actions/${dataPointName}`, function(data) {
+                allActions = data.actions;
+                
+                // 加载已有标注
+                $.get(`/get_annotations/${dataPointName}`, function(annotationData) {
+                    annotations = {};
+                    annotationData.forEach(ann => {
+                        if (!annotations[ann.action_index]) {
+                            annotations[ann.action_index] = [];
+                        }
+                        annotations[ann.action_index].push(ann);
+                    });
+                    
+                    renderActions();
+                    updateProgress();
+                });
+            });
+        }
+
+        function renderActions() {
+            // Get detailed information of current data point
+            let currentDP = null;
+            {% for dp in data_points %}
+                if ("{{ dp.name }}" === currentDataPoint) {
+                    currentDP = {
+                        name: "{{ dp.name }}",
+                        success: {{ dp.success | tojson }},
+                        difficulty: "{{ dp.difficulty }}",
+                        pass_to_pass: {{ dp.pass_to_pass }},
+                        pass_to_fail: {{ dp.pass_to_fail }},
+                        fail_to_pass: {{ dp.fail_to_pass }},
+                        fail_to_fail: {{ dp.fail_to_fail }},
+                        test_failures: {{ dp.test_failures }},
+                        hierarchy_path: "{{ dp.hierarchy_path }}"
+                    };
+                }
+            {% endfor %}
+            
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Data Point: ${currentDataPoint}</h5>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Status: </small>
+                                <span class="badge ${currentDP && currentDP.success === true ? 'bg-success' : (currentDP && currentDP.success === false ? 'bg-danger' : 'bg-secondary')}">
+                                    ${currentDP && currentDP.success === true ? 'Success' : (currentDP && currentDP.success === false ? 'Failed' : 'Unknown')}
+                                </span>
+                                <br><small class="text-muted">Project: </small>
+                                <span class="badge bg-light text-dark">${currentDP ? currentDP.hierarchy_path : ''}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Difficulty: </small>
+                                <span class="badge bg-info">${currentDP ? currentDP.difficulty : ''}</span>
+                                <br><small class="text-muted">Test Failures: </small>
+                                <span class="badge bg-warning text-dark">${currentDP ? currentDP.test_failures : 0}</span>
+                            </div>
+                        </div>
+                        <div class="progress-info mt-2">
+                            <span id="current-progress"></span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Total rounds info -->
+                        <div class="round-counter">
+                            Total Rounds: ${allActions.length}
+                        </div>
+            `;
+
+            // Render all actions as individual rounds - all visible on same page
+            allActions.forEach((action, index) => {
+                const actionAnnotations = annotations[index] || [];
+                const isAnnotated = actionAnnotations.length > 0;
+                const cardClass = isAnnotated ? 'action-card annotated' : 'action-card';
+                
+                html += `
+                    <div class="${cardClass}" id="round-${index}">
+                        <div class="action-header">
+                            <div>
+                                <strong>Action ${index}: ${action.type}</strong>
+                                ${isAnnotated ? `<span class="badge bg-success ms-2">${actionAnnotations.length} annotations</span>` : ''}
+                            </div>
+                            <button class="btn btn-sm btn-warning" onclick="annotateAction(${index});">
+                                ${isAnnotated ? 'Manage Annotations' : 'Add Annotation'}
+                            </button>
+                        </div>
+                        <div class="action-content" id="action-content-${index}">
+                            ${escapeHtml(action.content)}
+                        </div>
+                        ${isAnnotated ? `
+                            <div class="annotation-form">
+                                <strong>Annotated Issues (${actionAnnotations.length}):</strong>
+                                ${renderActionAnnotations(actionAnnotations, index)}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            $('#main-content').html(html);
+        }
+
+        function renderActionAnnotations(actionAnnotations, actionIndex) {
+            let html = '';
+            actionAnnotations.forEach((ann, annIndex) => {
+                html += `
+                    <div class="annotation-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <span class="annotation-badge">
+                                    <span class="badge bg-info">${getCategoryDisplayName(ann.category)}</span>
+                                </span>
+                                <div class="mt-2">
+                                    <small class="text-muted">Reason:</small>
+                                    <div>${ann.reason}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger ms-2" 
+                                    onclick="deleteSpecificAnnotation(${actionIndex}, '${ann.id}')">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        // Action content is now always visible
+
+        function annotateAction(index) {
+            currentActionIndex = index;
+        
+            const actionAnnotations = annotations[index] || [];
+            if (actionAnnotations.length > 0) {
+                $('#existing-annotations').show();
+                $('#annotation-list').html(renderExistingAnnotations(actionAnnotations, index));
+            } else {
+                $('#existing-annotations').hide();
+            }
+            
+            $('#category').val('');
+            $('#reason').val('');
+            
+            $('#annotationModal').modal('show');
+        }
+
+        function renderExistingAnnotations(actionAnnotations, actionIndex) {
+            let html = '';
+            actionAnnotations.forEach((ann, annIndex) => {
+                html += `
+                    <div class="annotation-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <span class="badge bg-info">${getCategoryDisplayName(ann.category)}</span>
+                                <div class="mt-2">
+                                    <small>${ann.reason}</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteSpecificAnnotation(${actionIndex}, '${ann.id}')">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        function addAnnotation() {
+            const category = $('#category').val();
+            const reason = $('#reason').val();
+            
+            if (!currentDataPoint || currentActionIndex < 0 || !category || !reason) {
+                alert('Please fill in complete annotation information');
+                return;
+            }
+
+            const data = {
+                data_point_name: currentDataPoint,
+                action_index: currentActionIndex,
+                category: category,
+                reason: reason
+            };
+
+            $.ajax({
+                url: '/add_annotation',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+            
+                        loadDataPoint(currentDataPoint);
+             
+                        $('#category').val('');
+                        $('#reason').val('');
+                        
+                        alert('Annotation added successfully!');
+                    } else {
+                        alert('Addition failed: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to add annotation:', error);
+                    alert('Addition failed, please try again');
+                }
+            });
+        }
+
+  
+function deleteSpecificAnnotation(actionIndex, annotationId) {
+    currentActionIndex = actionIndex;
+    currentAnnotationId = annotationId;
+    $('#deleteModal').modal('show');
+}
+
+function confirmDelete() {
+    if (!currentDataPoint || currentActionIndex < 0) return;
+
+    $.ajax({
+        url: '/delete_annotation',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            data_point_name: currentDataPoint,
+            action_index: currentActionIndex,
+            annotation_id: currentAnnotationId  
+        }),
+        success: function(response) {
+            if (response.success) {
+                $('#deleteModal').modal('hide');
+               
+                loadDataPoint(currentDataPoint);
+           
+                if ($('#annotationModal').hasClass('show')) {
+                    annotateAction(currentActionIndex);
+                }
+            } else {
+                alert('Deletion failed: ' + response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to delete annotation:', error);
+            alert('Deletion failed, please try again');
+        }
+    });
+}
+
+
+        function updateProgress() {
+            let annotatedActionsCount = 0;
+            Object.keys(annotations).forEach(actionIndex => {
+                if (annotations[actionIndex].length > 0) {
+                    annotatedActionsCount++;
+                }
+            });
+            
+            $('#progress-' + currentDataPoint).text(`${annotatedActionsCount}/${allActions.length} Annotated`);
+            $('#current-progress').text(`${annotatedActionsCount}/${allActions.length} Annotated`);
+        }
+
+        function getCategoryDisplayName(category) {
+            const categoryMap = {
+                'issue_misleading': '1.1 Misleading Issue Description',
+                'keywords_location': '1.2.1 Description Keyword Location',
+                'referred_code_location': '1.2.2 Referenced Code Location',
+                'error_stack_trace': '1.2.3 Error Stack Trace',
+                'error':'1.3 Error Attribution',
+                'specific_case_overfitting': '2.1.1 Overfitting Specific Cases',
+                'evasive_repair': '2.1.2 Evasive Repair',
+                'redundant_erroneous_implementation': '2.1.3 Creating Erroneous Redundancy',
+                'algorithmic_implementation': '2.2.1.1 Algorithmic Implementation Errors',
+                'control_flow': '2.2.1.2 Control Flow Defects',
+                'boundary_handling': '2.2.1.3 Boundary Handling Defects',
+                'data_processing_errors': '2.2.2 Data Processing Errors',
+                'insufficient_domain_knowledge': '2.2.3 Insufficient Domain Knowledge',
+                'inheritance': '2.3.1.1 Inheritance Relations',
+                'interface_contract': '2.3.1.2 Interface Contract',
+                'component_coordination': '2.3.2.1 Component Coordination',
+                'recurring_pattern': '2.3.2.2 Recurring Pattern',
+                'issue_interference': '2.4 Issue Interference',
+                'reproduction_script_failure': '3.1.1 Reproduction Script Creation Failure',
+                'insufficient_verification_capability': '3.1.2 Insufficient Verification Capability',
+                'reproduction_output_misreading': '3.1.3 Reproduction Output Misreading',
+                'non_progressive_iteration': '3.2.1.1 Non-progressive Iteration',
+                'blindly_strategy_switching': '3.2.1.2 Blind Strategy Switching',
+                'verification_abandonment': '3.2.2.1 Verification Abandonment',
+                'verification_weakening': '3.2.2.2 Verification Weakening',
+                'context_forgetting': '3.3 Context Forgetting'
+            };
+            return categoryMap[category] || category;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // No navigation functions needed - all rounds visible on same page
+    </script>
+</body>
+</html>

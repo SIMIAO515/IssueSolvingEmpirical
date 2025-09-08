@@ -1,0 +1,1492 @@
+role: system
+You are a helpful assistant that can interact with a computer to solve tasks.
+<IMPORTANT>
+* If user provides a path, you should NOT assume it's relative to the current working directory. Instead, you should explore the file system to find the file before working on it.
+</IMPORTANT>
+
+
+role: user
+<uploaded_files>
+/workspace/astropy__astropy__1.3
+</uploaded_files>
+I've uploaded a python code repository in the directory astropy__astropy__1.3. Consider the following PR description:
+
+<pr_description>
+Unit equality comparison with None raises TypeError for UnrecognizedUnit
+```
+In [12]: x = u.Unit('asdf', parse_strict='silent')
+
+In [13]: x == None  # Should be False
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+<ipython-input-13-2486f2ccf928> in <module>()
+----> 1 x == None  # Should be False
+
+/Users/aldcroft/anaconda3/lib/python3.5/site-packages/astropy/units/core.py in __eq__(self, other)
+   1699 
+   1700     def __eq__(self, other):
+-> 1701         other = Unit(other, parse_strict='silent')
+   1702         return isinstance(other, UnrecognizedUnit) and self.name == other.name
+   1703 
+
+/Users/aldcroft/anaconda3/lib/python3.5/site-packages/astropy/units/core.py in __call__(self, s, represents, format, namespace, doc, parse_strict)
+   1808 
+   1809         elif s is None:
+-> 1810             raise TypeError("None is not a valid Unit")
+   1811 
+   1812         else:
+
+TypeError: None is not a valid Unit
+```
+
+</pr_description>
+
+Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+Your task is to make the minimal changes to non-tests files in the /repo directory to ensure the <pr_description> is satisfied.
+Follow these steps to resolve the issue:
+1. As a first step, it might be a good idea to explore the repo to familiarize yourself with its structure.
+2. Create a script to reproduce the error and execute it with `python <filename.py>` using the BashTool, to confirm the error
+3. Edit the sourcecode of the repo to resolve the issue
+4. Rerun your reproduce script and confirm that the error is fixed!
+5. Think about edgecases and make sure your fix handles them as well
+Your thinking should be thorough and so it's fine if it's very long.
+
+
+THOUGHT:
+I'll help you implement the necessary changes to fix the issue with Unit equality comparison with None. Let's follow the steps you outlined:
+
+1. First, let's explore the repository structure to locate the relevant files:
+
+### This is the 1st action:
+{"command": "ls -R /workspace/astropy__astropy__1.3"}
+
+OBSERVATION:
+ls -R /workspace/astropy__astropy__1.3
+/workspace/astropy__astropy__1.3:
+CHANGES.rst	    appveyor.yml      licenses
+CITATION	    astropy	      pip-requirements
+CODE_OF_CONDUCT.md  astropy.egg-info  pip-requirements-dev
+CONTRIBUTING.md     astropy_helpers   pip-requirements-doc
+LICENSE.rst	    build	      readthedocs.yml
+MANIFEST.in	    cextern	      setup.cfg
+README.rst	    conftest.py       setup.py
+__pycache__	    docs	      static
+ah_bootstrap.py     examples
+
+/workspace/astropy__astropy__1.3/__pycache__:
+ah_bootstrap.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy:
+__init__.py				  coordinates	     stats
+__pycache__				  cosmology	     table
+_compiler.c				  cython_version.py  tests
+_compiler.cpython-39-x86_64-linux-gnu.so  extern	     time
+_erfa					  io		     units
+astropy.cfg				  logger.py	     utils
+config					  modeling	     version.py
+conftest.py				  nddata	     visualization
+constants				  samp		     wcs
+convolution				  setup_package.py
+
+/workspace/astropy__astropy__1.3/astropy/__pycache__:
+__init__.cpython-39.pyc  setup_package.cpython-39.pyc  version.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/_erfa:
+__init__.py	  erfa_generator.py  ufunc.c
+__pycache__	  pav2pv.c	     ufunc.c.templ
+core.py		  pv2pav.c	     ufunc.cpython-39-x86_64-linux-gnu.so
+core.py.templ	  setup_package.py
+erfa_additions.h  tests
+
+/workspace/astropy__astropy__1.3/astropy/_erfa/__pycache__:
+__init__.cpython-39.pyc        setup_package.cpython-39.pyc
+erfa_generator.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/_erfa/tests:
+__init__.py  test_erfa.py
+
+/workspace/astropy__astropy__1.3/astropy/config:
+__init__.py  affiliated.py     paths.py		 tests
+__pycache__  configuration.py  setup_package.py
+
+/workspace/astropy__astropy__1.3/astropy/config/__pycache__:
+__init__.cpython-39.pyc       paths.cpython-39.pyc
+affiliated.cpython-39.pyc     setup_package.cpython-39.pyc
+configuration.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/config/tests:
+__init__.py  data  test_configs.py
+
+/workspace/astropy__astropy__1.3/astropy/config/tests/data:
+alias.cfg	 astropy.0.3.windows.cfg  empty.cfg
+astropy.0.3.cfg  deprecated.cfg		  not_empty.cfg
+
+/workspace/astropy__astropy__1.3/astropy/constants:
+__init__.py	   cgs.py	  constant.py  si.py
+astropyconst13.py  codata2010.py  iau2012.py   tests
+astropyconst20.py  codata2014.py  iau2015.py   utils.py
+
+/workspace/astropy__astropy__1.3/astropy/constants/tests:
+__init__.py  test_constant.py  test_pickle.py  test_prior_version.py
+
+/workspace/astropy__astropy__1.3/astropy/convolution:
+__init__.py
+boundary_extend.c
+boundary_extend.cpython-39-x86_64-linux-gnu.so
+boundary_extend.pyx
+boundary_fill.c
+boundary_fill.cpython-39-x86_64-linux-gnu.so
+boundary_fill.pyx
+boundary_none.c
+boundary_none.cpython-39-x86_64-linux-gnu.so
+boundary_none.pyx
+boundary_wrap.c
+boundary_wrap.cpython-39-x86_64-linux-gnu.so
+boundary_wrap.pyx
+convolve.py
+core.py
+kernels.py
+tests
+utils.py
+
+/workspace/astropy__astropy__1.3/astropy/convolution/tests:
+__init__.py		  test_convolve_models.py  test_kernel_class.py
+test_convolve.py	  test_convolve_nddata.py  test_pickle.py
+test_convolve_fft.py	  test_convolve_speeds.py
+test_convolve_kernels.py  test_discretize.py
+
+/workspace/astropy__astropy__1.3/astropy/coordinates:
+__init__.py	    calculation.py	  name_resolve.py
+__pycache__	    data		  orbital_elements.py
+angle_lextab.py     distances.py	  representation.py
+angle_parsetab.py   earth.py		  setup_package.py
+angle_utilities.py  earth_orientation.py  sites.py
+angles.py	    errors.py		  sky_coordinate.py
+attributes.py	    funcs.py		  solar_system.py
+baseframe.py	    matching.py		  tests
+builtin_frames	    matrix_utilities.py   transformations.py
+
+/workspace/astropy__astropy__1.3/astropy/coordinates/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/coordinates/builtin_frames:
+__init__.py		     gcrs.py
+altaz.py		     hcrs.py
+baseradec.py		     icrs.py
+cirs.py			     icrs_cirs_transforms.py
+cirs_observed_transforms.py  icrs_fk5_transforms.py
+ecliptic.py		     intermediate_rotation_transforms.py
+ecliptic_transforms.py	     itrs.py
+fk4.py			     lsr.py
+fk4_fk5_transforms.py	     skyoffset.py
+fk5.py			     supergalactic.py
+galactic.py		     supergalactic_transforms.py
+galactic_transforms.py	     utils.py
+galactocentric.py
+
+/workspace/astropy__astropy__1.3/astropy/coordinates/data:
+constellation_data_roman87.dat	constellation_names.dat  sites.json
+
+/workspace/astropy__astropy__1.3/astropy/coordinates/tests:
+__init__.py			      test_matrix_utilities.py
+accuracy			      test_name_resolve.py
+test_angles.py			      test_pickle.py
+test_angular_separation.py	      test_regression.py
+test_api_ape5.py		      test_representation.py
+test_arrays.py			      test_representation_arithmetic.py
+test_atc_replacements.py	      test_representation_methods.py
+test_celestial_transformations.py     test_shape_manipulation.py
+test_distance.py		      test_sites.py
+test_earth.py			      test_sky_coord.py
+test_finite_difference_velocities.py  test_sky_coord_velocities.py
+test_formatting.py		      test_skyoffset_transformations.py
+test_frames.py			      test_solar_system.py
+test_frames_with_velocity.py	      test_transformations.py
+test_funcs.py			      test_unit_representation.py
+test_iau_fullstack.py		      test_velocity_corrs.py
+test_intermediate_transformations.py  utils.py
+test_matching.py
+
+/workspace/astropy__astropy__1.3/astropy/coordinates/tests/accuracy:
+__init__.py	  generate_ref_ast.py  test_fk4_no_e_fk4.py
+fk4_no_e_fk4.csv  icrs_fk5.csv	       test_fk4_no_e_fk5.py
+fk4_no_e_fk5.csv  test_altaz_icrs.py   test_galactic_fk4.py
+galactic_fk4.csv  test_ecliptic.py     test_icrs_fk5.py
+
+/workspace/astropy__astropy__1.3/astropy/cosmology:
+__init__.py    scalar_inv_efuncs.c
+core.py        scalar_inv_efuncs.cpython-39-x86_64-linux-gnu.so
+funcs.py       scalar_inv_efuncs.pyx
+parameters.py  tests
+
+/workspace/astropy__astropy__1.3/astropy/cosmology/tests:
+__init__.py  test_cosmology.py	test_pickle.py
+
+/workspace/astropy__astropy__1.3/astropy/extern:
+README.rst   __pycache__  configobj  js   setup_package.py
+__init__.py  bundled	  css	     ply  six.py
+
+/workspace/astropy__astropy__1.3/astropy/extern/__pycache__:
+__init__.cpython-39.pyc  setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/extern/bundled:
+__init__.py  six.py
+
+/workspace/astropy__astropy__1.3/astropy/extern/configobj:
+__init__.py  __pycache__  configobj.py	validate.py
+
+/workspace/astropy__astropy__1.3/astropy/extern/configobj/__pycache__:
+__init__.cpython-39.pyc  configobj.cpython-39.pyc  validate.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/extern/css:
+jquery.dataTables.css
+
+/workspace/astropy__astropy__1.3/astropy/extern/js:
+jquery-3.1.1.js      jquery.dataTables.js
+jquery-3.1.1.min.js  jquery.dataTables.min.js
+
+/workspace/astropy__astropy__1.3/astropy/extern/ply:
+__init__.py  cpp.py  ctokens.py  lex.py  yacc.py  ygen.py
+
+/workspace/astropy__astropy__1.3/astropy/io:
+__init__.py  __pycache__  ascii  fits  misc  registry.py  tests  votable
+
+/workspace/astropy__astropy__1.3/astropy/io/__pycache__:
+__init__.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii:
+__init__.py				cparser.pyx    misc.py
+__pycache__				daophot.py     rst.py
+basic.py				ecsv.py        setup_package.py
+cds.py					fastbasic.py   sextractor.py
+connect.py				fixedwidth.py  src
+core.py					html.py        tests
+cparser.c				ipac.py        ui.py
+cparser.cpython-39-x86_64-linux-gnu.so	latex.py
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/src:
+tokenizer.c  tokenizer.h
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests:
+__init__.py			test_compressed.py  test_ipac_definitions.py
+common.py			test_connect.py     test_read.py
+t				test_ecsv.py	    test_rst.py
+test_c_reader.py		test_fixedwidth.py  test_types.py
+test_cds_header_from_readme.py	test_html.py	    test_write.py
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t:
+apostrophe.rdb		html2.html		    short.rdb.bz2
+apostrophe.tab		ipac.dat		    short.rdb.gz
+bad.txt			ipac.dat.bz2		    short.rdb.xz
+bars_at_ends.txt	ipac.dat.xz		    short.tab
+cds			latex1.tex		    simple.txt
+cds.dat			latex1.tex.gz		    simple2.txt
+cds2.dat		latex2.tex		    simple3.txt
+cds_malformed.dat	latex3.tex		    simple4.txt
+commented_header.dat	nls1_stackinfo.dbout	    simple5.txt
+commented_header2.dat	no_data_cds.dat		    simple_csv.csv
+continuation.dat	no_data_daophot.dat	    simple_csv_missing.csv
+daophot.dat		no_data_ipac.dat	    space_delim_blank_lines.txt
+daophot.dat.gz		no_data_sextractor.dat	    space_delim_no_header.dat
+daophot2.dat		no_data_with_header.dat     space_delim_no_names.dat
+daophot3.dat		no_data_without_header.dat  test4.dat
+daophot4.dat		sextractor.dat		    test5.dat
+fill_values.txt		sextractor2.dat		    vizier
+fixed_width_2_line.txt	sextractor3.dat		    vots_spec.dat
+html.html		short.rdb		    whitespace.dat
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t/cds:
+description  glob  multi
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t/cds/description:
+ReadMe	table.dat
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t/cds/glob:
+ReadMe	lmxbrefs.dat
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t/cds/multi:
+ReadMe	lhs2065.dat  lp944-20.dat
+
+/workspace/astropy__astropy__1.3/astropy/io/ascii/tests/t/vizier:
+ReadMe	table1.dat  table5.dat
+
+/workspace/astropy__astropy__1.3/astropy/io/fits:
+__init__.py				    diff.py	 setup_package.py
+__pycache__				    file.py	 src
+card.py					    fitsrec.py	 tests
+column.py				    fitstime.py  util.py
+compression.cpython-39-x86_64-linux-gnu.so  hdu		 verify.py
+connect.py				    header.py
+convenience.py				    scripts
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/__pycache__:
+__init__.cpython-39.pyc     fitsrec.cpython-39.pyc
+card.cpython-39.pyc	    header.cpython-39.pyc
+column.cpython-39.pyc	    setup_package.cpython-39.pyc
+convenience.cpython-39.pyc  util.cpython-39.pyc
+diff.cpython-39.pyc	    verify.cpython-39.pyc
+file.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/hdu:
+__init__.py  base.py	    groups.py	image.py	streaming.py
+__pycache__  compressed.py  hdulist.py	nonstandard.py	table.py
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/hdu/__pycache__:
+__init__.cpython-39.pyc    groups.cpython-39.pyc   nonstandard.cpython-39.pyc
+base.cpython-39.pyc	   hdulist.cpython-39.pyc  streaming.cpython-39.pyc
+compressed.cpython-39.pyc  image.cpython-39.pyc    table.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/scripts:
+__init__.py  fitscheck.py  fitsdiff.py	fitsheader.py  fitsinfo.py
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/src:
+compressionmodule.c  compressionmodule.h
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/tests:
+__init__.py		      test_diff.py	  test_hdulist.py
+cfitsio_verify.c	      test_division.py	  test_header.py
+data			      test_fitscheck.py   test_image.py
+test_checksum.py	      test_fitsdiff.py	  test_nonstandard.py
+test_compression_failures.py  test_fitsheader.py  test_structured.py
+test_connect.py		      test_fitsinfo.py	  test_table.py
+test_convenience.py	      test_fitstime.py	  test_uint.py
+test_core.py		      test_groups.py	  test_util.py
+
+/workspace/astropy__astropy__1.3/astropy/io/fits/tests/data:
+arange.fits		     compressed_image.fits  stddata.fits
+ascii.fits		     fixed-1890.fits	    table.fits
+blank.fits		     group.fits		    tb.fits
+btable.fits		     history_header.fits    tdim.fits
+chandra_time.fits	     memtest.fits	    test0.fits
+checksum.fits		     o4sp040b0_raw.fits     variable_length_table.fits
+comp.fits		     random_groups.fits     zerowidth.fits
+compressed_float_bzero.fits  scale.fits
+
+/workspace/astropy__astropy__1.3/astropy/io/misc:
+__init__.py  asdf  connect.py  hdf5.py	pickle_helpers.py  tests  yaml.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf:
+__init__.py  extension.py  setup_package.py  types.py
+__pycache__  schemas	   tags
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/schemas:
+astropy.org
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/schemas/astropy.org:
+astropy
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/schemas/astropy.org/astropy:
+coordinates
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/schemas/astropy.org/astropy/coordinates:
+angle-1.0.0.yaml  latitude-1.0.0.yaml	representation-1.0.0.yaml
+frames		  longitude-1.0.0.yaml
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/schemas/astropy.org/astropy/coordinates/frames:
+baseframe-1.0.0.yaml	galactocentric-1.0.0.yaml
+cirs-1.0.0.yaml		gcrs-1.0.0.yaml
+fk4-1.0.0.yaml		icrs-1.0.0.yaml
+fk4noeterms-1.0.0.yaml	icrs-1.1.0.yaml
+fk5-1.0.0.yaml		itrs-1.0.0.yaml
+galactic-1.0.0.yaml	precessedgeocentric-1.0.0.yaml
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags:
+__init__.py  coordinates  fits	table  time  transform	unit
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/coordinates:
+__init__.py  angle.py  frames.py  representation.py  tests
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/coordinates/tests:
+__init__.py  test_angle.py  test_frames.py  test_representation.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/fits:
+__init__.py  __pycache__  fits.py  setup_package.py  tests
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/fits/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/fits/tests:
+__init__.py  data  test_fits.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/fits/tests/data:
+complex.fits
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/table:
+__init__.py  table.py  tests
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/table/tests:
+__init__.py  test_table.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/time:
+__init__.py  tests  time.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/time/tests:
+__init__.py  test_time.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/transform:
+__init__.py  compound.py    projections.py  tests
+basic.py     polynomial.py  tabular.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/transform/tests:
+__init__.py  test_transform.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/unit:
+__init__.py  quantity.py  tests  unit.py
+
+/workspace/astropy__astropy__1.3/astropy/io/misc/asdf/tags/unit/tests:
+__init__.py  test_quantity.py  test_u
+[... Observation truncated due to length ...]
+m_wcslib.sh  wcslib
+
+/workspace/astropy__astropy__1.3/cextern/cfitsio:
+License.txt  README.txt  docs  lib  zlib
+
+/workspace/astropy__astropy__1.3/cextern/cfitsio/docs:
+changes.txt
+
+/workspace/astropy__astropy__1.3/cextern/cfitsio/lib:
+buffers.c    eval_y.c		 getcols.c     modkey.c    putcoluj.c
+cfileio.c    fits_hcompress.c	 getcolsb.c    pliocomp.c  putcoluk.c
+checksum.c   fits_hdecompress.c  getcolui.c    putcol.c    putkey.c
+drvrfile.c   fitscore.c		 getcoluj.c    putcolb.c   quantize.c
+drvrmem.c    fitsio.h		 getcoluk.c    putcold.c   region.c
+drvrnet.c    fitsio2.h		 getkey.c      putcole.c   region.h
+drvrsmem.c   getcol.c		 group.c       putcoli.c   ricecomp.c
+drvrsmem.h   getcolb.c		 group.h       putcolj.c   scalnull.c
+editcol.c    getcold.c		 grparser.c    putcolk.c   simplerng.c
+edithdu.c    getcole.c		 grparser.h    putcoll.c   simplerng.h
+eval_defs.h  getcoli.c		 histo.c       putcols.c   swapproc.c
+eval_f.c     getcolj.c		 imcompress.c  putcolsb.c  wcssub.c
+eval_l.c     getcolk.c		 iraffits.c    putcolu.c   wcsutil.c
+eval_tab.h   getcoll.c		 longnam.h     putcolui.c
+
+/workspace/astropy__astropy__1.3/cextern/cfitsio/zlib:
+adler32.c  deflate.h  inffixed.h  inftrees.h  zcompress.c    zutil.c
+crc32.c    infback.c  inflate.c   trees.c     zconf.h	     zutil.h
+crc32.h    inffast.c  inflate.h   trees.h     zlib.h
+deflate.c  inffast.h  inftrees.c  uncompr.c   zuncompress.c
+
+/workspace/astropy__astropy__1.3/cextern/erfa:
+README.rst  bp06.c    eors.c	     gc2gde.c  nut80.c	 prec76.c  starpm.c
+a2af.c	    bpn2xy.c  epb.c	     gd2gc.c   nutm80.c  pv2p.c    starpv.c
+a2tf.c	    c2i00a.c  epb2jd.c	     gd2gce.c  obl06.c	 pv2s.c    sxp.c
+ab.c	    c2i00b.c  epj.c	     gmst00.c  obl80.c	 pvdpv.c   sxpv.c
+af2a.c	    c2i06a.c  epj2jd.c	     gmst06.c  p06e.c	 pvm.c	   taitt.c
+anp.c	    c2ibpn.c  epv00.c	     gmst82.c  p2pv.c	 pvmpv.c   taiut1.c
+anpm.c	    c2ixy.c   eqec06.c	     gst00a.c  p2s.c	 pvppv.c   taiutc.c
+apcg.c	    c2ixys.c  eqeq94.c	     gst00b.c  pap.c	 pvstar.c  tcbtdb.c
+apcg13.c    c2s.c     era00.c	     gst06.c   pas.c	 pvtob.c   tcgtt.c
+apci.c	    c2t00a.c  erfa.h	     gst06a.c  pb06.c	 pvu.c	   tdbtcb.c
+apci13.c    c2t00b.c  erfaextra.h    gst94.c   pdp.c	 pvup.c    tdbtt.c
+apco.c	    c2t06a.c  erfam.h	     h2fk5.c   pfw06.c	 pvxpv.c   tf2a.c
+apco13.c    c2tcio.c  erfaversion.c  hfk5z.c   plan94.c  pxp.c	   tf2d.c
+apcs.c	    c2teqx.c  fad03.c	     icrs2g.c  pm.c	 refco.c   tr.c
+apcs13.c    c2tpe.c   fae03.c	     ir.c      pmat00.c  rm2v.c    trxp.c
+aper.c	    c2txy.c   faf03.c	     jd2cal.c  pmat06.c  rv2m.c    trxpv.c
+aper13.c    cal2jd.c  faju03.c	     jdcalf.c  pmat76.c  rx.c	   tttai.c
+apio.c	    cp.c      fal03.c	     ld.c      pmp.c	 rxp.c	   tttcg.c
+apio13.c    cpv.c     falp03.c	     ldn.c     pmpx.c	 rxpv.c    tttdb.c
+atci13.c    cr.c      fama03.c	     ldsun.c   pmsafe.c  rxr.c	   ttut1.c
+atciq.c     d2dtf.c   fame03.c	     lteceq.c  pn.c	 ry.c	   ut1tai.c
+atciqn.c    d2tf.c    fane03.c	     ltecm.c   pn00.c	 rz.c	   ut1tt.c
+atciqz.c    dat.c     faom03.c	     lteqec.c  pn00a.c	 s00.c	   ut1utc.c
+atco13.c    dtdb.c    fapa03.c	     ltp.c     pn00b.c	 s00a.c    utctai.c
+atic13.c    dtf2d.c   fasa03.c	     ltpb.c    pn06.c	 s00b.c    utcut1.c
+aticq.c     eceq06.c  faur03.c	     ltpecl.c  pn06a.c	 s06.c	   xy06.c
+aticqn.c    ecm06.c   fave03.c	     ltpequ.c  pnm00a.c  s06a.c    xys00a.c
+atio13.c    ee00.c    fk52h.c	     num00a.c  pnm00b.c  s2c.c	   xys00b.c
+atioq.c     ee00a.c   fk5hip.c	     num00b.c  pnm06a.c  s2p.c	   xys06a.c
+atoc13.c    ee00b.c   fk5hz.c	     num06a.c  pnm80.c	 s2pv.c    zp.c
+atoi13.c    ee06a.c   fw2m.c	     numat.c   pom00.c	 s2xpv.c   zpv.c
+atoiq.c     eect00.c  fw2xy.c	     nut00a.c  ppp.c	 sepp.c    zr.c
+bi00.c	    eform.c   g2icrs.c	     nut00b.c  ppsp.c	 seps.c
+bp00.c	    eo06a.c   gc2gd.c	     nut06a.c  pr00.c	 sp00.c
+
+/workspace/astropy__astropy__1.3/cextern/expat:
+CMake.README	       Makefile.in  configure.in  expat_config.h.cmake	win32
+CMakeLists.txt	       README	    conftools	  expat_config.h.in	xmlwf
+COPYING		       aclocal.m4   doc		  lib
+Changes		       amiga	    examples	  m4
+ConfigureChecks.cmake  bcb5	    expat.dsw	  tests
+MANIFEST	       configure    expat.pc.in   vms
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga:
+Makefile    expat_68k.c		       expat_base.h	include
+README.txt  expat_68k.h		       expat_lib.c	launch.c
+expat.xml   expat_68k_handler_stubs.c  expat_vectors.c	stdlib.c
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga/include:
+inline4  interfaces  libraries	proto
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga/include/inline4:
+expat.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga/include/interfaces:
+expat.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga/include/libraries:
+expat.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/amiga/include/proto:
+expat.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/bcb5:
+README.txt	  expat.mak	    expatw_static.bpf  outline.bpr
+all_projects.bpg  expat_static.bpf  expatw_static.bpr  outline.mak
+elements.bpf	  expat_static.bpr  expatw_static.mak  setup.bat
+elements.bpr	  expat_static.mak  libexpat_mtd.def   xmlwf.bpf
+elements.mak	  expatw.bpf	    libexpatw_mtd.def  xmlwf.bpr
+expat.bpf	  expatw.bpr	    makefile.mak       xmlwf.mak
+expat.bpr	  expatw.mak	    outline.bpf
+
+/workspace/astropy__astropy__1.3/cextern/expat/conftools:
+PrintPath		 expat.m4	 install-sh
+ac_c_bigendian_cross.m4  get-version.sh  ltmain.sh
+
+/workspace/astropy__astropy__1.3/cextern/expat/doc:
+expat.png  reference.html  style.css  valid-xhtml10.png  xmlwf.1  xmlwf.sgml
+
+/workspace/astropy__astropy__1.3/cextern/expat/examples:
+elements.c  elements.dsp  outline.c  outline.dsp
+
+/workspace/astropy__astropy__1.3/cextern/expat/lib:
+Makefile.MPW   expat_external.h   latin1tab.h	 winconfig.h  xmltok_impl.c
+amigaconfig.h  expat_static.dsp   libexpat.def	 xmlparse.c   xmltok_impl.h
+ascii.h        expatw.dsp	  libexpatw.def  xmlrole.c    xmltok_ns.c
+asciitab.h     expatw_static.dsp  macconfig.h	 xmlrole.h
+expat.dsp      iasciitab.h	  nametab.h	 xmltok.c
+expat.h        internal.h	  utf8tab.h	 xmltok.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/m4:
+libtool.m4  ltoptions.m4  ltsugar.m4  ltversion.m4  lt~obsolete.m4
+
+/workspace/astropy__astropy__1.3/cextern/expat/tests:
+README.txt  chardata.c	minicheck.c  runtests.c      xmltest.sh
+benchmark   chardata.h	minicheck.h  runtestspp.cpp
+
+/workspace/astropy__astropy__1.3/cextern/expat/tests/benchmark:
+README.txt  benchmark.c  benchmark.dsp	benchmark.dsw
+
+/workspace/astropy__astropy__1.3/cextern/expat/vms:
+README.vms  descrip.mms  expat_config.h
+
+/workspace/astropy__astropy__1.3/cextern/expat/win32:
+MANIFEST.txt  README.txt  expat.iss
+
+/workspace/astropy__astropy__1.3/cextern/expat/xmlwf:
+codepage.c  readfilemap.c   xmlfile.h	xmlurl.h
+codepage.h  unixfilemap.c   xmlmime.c	xmlwf.c
+ct.c	    win32filemap.c  xmlmime.h	xmlwf.dsp
+filemap.h   xmlfile.c	    xmltchar.h	xmlwin32url.cxx
+
+/workspace/astropy__astropy__1.3/cextern/wcslib:
+C		INSTALL     configure	    wcsconfig_f77.h.in
+CHANGES		README	    configure.ac    wcsconfig_tests.h.in
+COPYING		THANKS	    flavours	    wcsconfig_utils.h.in
+COPYING.LESSER	VALIDATION  makedefs.in     wcslib.pc.in
+GNUmakefile	config	    wcsconfig.h.in
+
+/workspace/astropy__astropy__1.3/cextern/wcslib/C:
+GNUmakefile  flexed	  prj.c  spx.h	   wcserr.h   wcspih.l	   wcsunits.h
+cel.c	     getwcstab.c  prj.h  tab.c	   wcsfix.c   wcsprintf.c  wcsutil.c
+cel.h	     getwcstab.h  spc.c  tab.h	   wcsfix.h   wcsprintf.h  wcsutil.h
+dis.c	     lin.c	  spc.h  wcs.c	   wcshdr.c   wcstrig.c    wcsutrn.l
+dis.h	     lin.h	  sph.c  wcs.h	   wcshdr.h   wcstrig.h
+fitshdr.h    log.c	  sph.h  wcsbth.l  wcslib.h   wcsulex.l
+fitshdr.l    log.h	  spx.c  wcserr.c  wcsmath.h  wcsunits.c
+
+/workspace/astropy__astropy__1.3/cextern/wcslib/C/flexed:
+README	fitshdr.c  wcsbth.c  wcspih.c  wcsulex.c  wcsutrn.c
+
+/workspace/astropy__astropy__1.3/cextern/wcslib/config:
+config.guess  config.sub  install-sh
+
+/workspace/astropy__astropy__1.3/docs:
+Makefile	  credits.rst		 make.bat	     time
+_pkgtemplate.rst  development		 modeling	     units
+_static		  getting_started.rst	 nddata		     utils
+changelog.rst	  importing_astropy.rst  nitpick-exceptions  visualization
+conf.py		  index.rst		 overview.rst	     warnings.rst
+config		  install.rst		 samp		     wcs
+constants	  io			 stability.rst	     whatsnew
+convolution	  known_issues.rst	 stats
+coordinates	  license.rst		 table
+cosmology	  logging.rst		 testhelpers.rst
+
+/workspace/astropy__astropy__1.3/docs/_static:
+astropy_banner.svg     astropy_logo.pdf
+astropy_banner_96.png  timer_prediction_pow10.png
+
+/workspace/astropy__astropy__1.3/docs/config:
+config_0_4_transition.rst  index.rst
+
+/workspace/astropy__astropy__1.3/docs/constants:
+index.rst  performance.inc.rst
+
+/workspace/astropy__astropy__1.3/docs/convolution:
+images	   kernels.rst		       performance.inc.rst
+index.rst  non_normalized_kernels.rst  using.rst
+
+/workspace/astropy__astropy__1.3/docs/convolution/images:
+astropy.png  original.png  scipy.png
+
+/workspace/astropy__astropy__1.3/docs/coordinates:
+angles.rst		index.rst	     representations.rst
+apply_space_motion.rst	inplace.rst	     skycoord.rst
+definitions.rst		matchsep.rst	     solarsystem.rst
+formatting.rst		performance.inc.rst  transforming.rst
+frames.rst		references.txt	     velocities.rst
+galactocentric.rst	remote_methods.rst
+
+/workspace/astropy__astropy__1.3/docs/cosmology:
+index.rst  performance.inc.rst
+
+/workspace/astropy__astropy__1.3/docs/development:
+astropy-package-template.rst  codeguide_emacs.rst  scripts.rst	       workflow
+building.rst		      docguide.rst	   testguide.rst
+ccython.rst		      docrules.rst	   vision.rst
+codeguide.rst		      releasing.rst	   when_to_rebase.rst
+
+/workspace/astropy__astropy__1.3/docs/development/workflow:
+additional_git_topics.rst	known_projects.inc
+branch_dropdown.png		links.inc
+command_history.rst		maintainer_workflow.rst
+command_history.sh		milestone.png
+command_history_with_output.sh	patches.rst
+development_workflow.rst	pull_button.png
+forking_button.png		terminal_cast.rst
+get_devel_version.rst		this_project.inc
+git_edit_workflow_examples.rst	virtual_pythons.rst
+git_install.rst			virtualenv_detail.rst
+git_links.inc			worked_example_switch_branch.png
+git_resources.rst
+
+/workspace/astropy__astropy__1.3/docs/io:
+ascii  fits  misc.rst  registry.rst  unified.rst  votable
+
+/workspace/astropy__astropy__1.3/docs/io/ascii:
+base_classes.rst       fixed_width_gallery.rst	read.rst	write.rst
+extension_classes.rst  index.rst		references.txt
+fast_ascii_io.rst      performance.inc.rst	toc.txt
+
+/workspace/astropy__astropy__1.3/docs/io/fits:
+api  appendix  index.rst  performance.inc.rst  usage
+
+/workspace/astropy__astropy__1.3/docs/io/fits/api:
+cards.rst  files.rst	 hdus.rst     images.rst  verification.rst
+diff.rst   hdulists.rst  headers.rst  tables.rst
+
+/workspace/astropy__astropy__1.3/docs/io/fits/appendix:
+faq.rst  header_transition.rst	history.rst
+
+/workspace/astropy__astropy__1.3/docs/io/fits/usage:
+headers.rst  misc.rst	  table.rst	  verification.rst
+image.rst    scripts.rst  unfamiliar.rst
+
+/workspace/astropy__astropy__1.3/docs/io/votable:
+api_exceptions.rst  index.rst  performance.inc.rst  references.txt
+
+/workspace/astropy__astropy__1.3/docs/modeling:
+algorithms.rst	     fitting.rst  models.rst	  performance.inc.rst
+bounding-boxes.rst   index.rst	  new.rst	  units.rst
+compound-models.rst  links.inc	  parameters.rst
+
+/workspace/astropy__astropy__1.3/docs/nddata:
+ccddata.rst    index.rst  nddata.rst	       subclassing.rst
+decorator.rst  mixins	  performance.inc.rst  utils.rst
+
+/workspace/astropy__astropy__1.3/docs/nddata/mixins:
+index.rst  ndarithmetic.rst  ndio.rst  ndslicing.rst
+
+/workspace/astropy__astropy__1.3/docs/samp:
+advanced_embed_samp_hub.rst  example_table_image.rst  references.txt
+example_clients.rst	     index.rst
+example_hub.rst		     performance.inc.rst
+
+/workspace/astropy__astropy__1.3/docs/stats:
+bls.rst   index.rst	   performance.inc.rst	robust.rst
+circ.rst  lombscargle.rst  ripley.rst
+
+/workspace/astropy__astropy__1.3/docs/table:
+access_table.rst	    masking.rst		 references.txt
+construct_table.rst	    mixin_columns.rst	 table_architecture.png
+implementation_details.rst  modify_table.rst	 table_repr_html.png
+index.rst		    operations.rst	 table_row.png
+indexing.rst		    pandas.rst		 table_show_in_nb.png
+io.rst			    performance.inc.rst
+
+/workspace/astropy__astropy__1.3/docs/time:
+index.rst	     references.txt		time_scale_conversion.png
+performance.inc.rst  time_scale_conversion.odg
+
+/workspace/astropy__astropy__1.3/docs/units:
+combining_and_defining.rst     format.rst	      quantity.rst
+conversion.rst		       index.rst	      standard_units.rst
+decomposing_and_composing.rst  logarithmic_units.rst
+equivalencies.rst	       performance.inc.rst
+
+/workspace/astropy__astropy__1.3/docs/utils:
+iers.rst  index.rst  numpy.rst
+
+/workspace/astropy__astropy__1.3/docs/visualization:
+histogram.rst  lupton_rgb.rst	  performance.inc.rst
+index.rst      normalization.rst  wcsaxes
+
+/workspace/astropy__astropy__1.3/docs/visualization/wcsaxes:
+controlling_axes.rst	initializing_axes.rst
+custom_frames.rst	overlaying_coordinate_systems.rst
+generic_transforms.rst	overlays.rst
+images_contours.rst	slicing_datacubes.rst
+index.rst		ticks_labels_grid.rst
+
+/workspace/astropy__astropy__1.3/docs/wcs:
+examples     index.rst	   performance.inc.rst	references.txt
+history.rst  note_sip.rst  references.rst	relax.rst
+
+/workspace/astropy__astropy__1.3/docs/wcs/examples:
+from_file.py  programmatic.py
+
+/workspace/astropy__astropy__1.3/docs/whatsnew:
+0.1.rst  0.3.rst  1.0.rst  1.2.rst  2.0.rst  3.1.rst
+0.2.rst  0.4.rst  1.1.rst  1.3.rst  3.0.rst  index.rst
+
+/workspace/astropy__astropy__1.3/examples:
+README.txt  coordinates  io  template
+
+/workspace/astropy__astropy__1.3/examples/coordinates:
+README.txt		      plot_obs-planning.py	    rv-to-gsr.py
+plot_galactocentric-frame.py  plot_sgr-coordinate-frame.py
+
+/workspace/astropy__astropy__1.3/examples/io:
+Hs-2009-14-a-web.jpg  fits-tables.py	     skip_create-large-fits.py
+README.txt	      modify-fits-header.py  split-jpeg-to-fits.py
+create-mef.py	      plot_fits-image.py
+
+/workspace/astropy__astropy__1.3/examples/template:
+example-template.py
+
+/workspace/astropy__astropy__1.3/licenses:
+AURA_LICENSE.rst	EXPAT_LICENSE.rst   PYFITS.rst
+CONFIGOBJ_LICENSE.rst	JQUERY_LICENSE.rst  README.rst
+DATATABLES_LICENSE.rst	NUMPY_LICENSE.rst   WCSLIB_LICENSE.rst
+ERFA.rst		PLY_LICENSE.rst
+
+/workspace/astropy__astropy__1.3/static:
+wininst_background.bmp[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__1.3 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Based on the repository structure and the PR description, we need to focus on the `astropy/units/core.py` file since that's where the error is occurring. Let's first examine this file:
+
+### This is the 2nd action:
+{"command": "view", "path": "/workspace/astropy__astropy__1.3/astropy/units/core.py"}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/astropy__astropy__1.3/astropy/units/core.py:
+     1	# -*- coding: utf-8 -*-
+     2	# Licensed under a 3-clause BSD style license - see LICENSE.rst
+     3	
+     4	"""
+     5	Core units classes and functions
+     6	"""
+     7	
+     8	
+     9	import inspect
+    10	import operator
+    11	import textwrap
+    12	import warnings
+    13	
+    14	import numpy as np
+    15	
+    16	from ..utils.decorators import lazyproperty
+    17	from ..utils.exceptions import AstropyWarning
+    18	from ..utils.misc import isiterable, InheritDocstrings
+    19	from .utils import (is_effectively_unity, sanitize_scale, validate_power,
+    20	                    resolve_fractions)
+    21	from . import format as unit_format
+    22	
+    23	
+    24	__all__ = [
+    25	    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',
+    26	    'UnitBase', 'NamedUnit', 'IrreducibleUnit', 'Unit', 'CompositeUnit',
+    27	    'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
+    28	    'set_enabled_units', 'add_enabled_units',
+    29	    'set_enabled_equivalencies', 'add_enabled_equivalencies',
+    30	    'dimensionless_unscaled', 'one']
+    31	
+    32	UNITY = 1.0
+    33	
+    34	
+    35	def _flatten_units_collection(items):
+    36	    """
+    37	    Given a list of sequences, modules or dictionaries of units, or
+    38	    single units, return a flat set of all the units found.
+    39	    """
+    40	    if not isinstance(items, list):
+    41	        items = [items]
+    42	
+    43	    result = set()
+    44	    for item in items:
+    45	        if isinstance(item, UnitBase):
+    46	            result.add(item)
+    47	        else:
+    48	            if isinstance(item, dict):
+    49	                units = item.values()
+    50	            elif inspect.ismodule(item):
+    51	                units = vars(item).values()
+    52	            elif isiterable(item):
+    53	                units = item
+    54	            else:
+    55	                continue
+    56	
+    57	            for unit in units:
+    58	                if isinstance(unit, UnitBase):
+    59	                    result.add(unit)
+    60	
+    61	    return result
+    62	
+    63	
+    64	def _normalize_equivalencies(equivalencies):
+    65	    """
+    66	    Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+    67	
+    68	    (from_unit, to_unit, forward_func, backward_func)
+    69	
+    70	    Parameters
+    71	    ----------
+    72	    equivalencies : list of equivalency pairs
+    73	
+    74	    Raises
+    75	    ------
+    76	    ValueError if an equivalency cannot be interpreted
+    77	    """
+    78	    if equivalencies is None:
+    79	        return []
+    80	
+    81	    normalized = []
+    82	
+    83	    for i, equiv in enumerate(equivalencies):
+    84	        if len(equiv) == 2:
+    85	            funit, tunit = equiv
+    86	            a = b = lambda x: x
+    87	        elif len(equiv) == 3:
+    88	            funit, tunit, a = equiv
+    89	            b = a
+    90	        elif len(equiv) == 4:
+    91	            funit, tunit, a, b = equiv
+    92	        else:
+    93	            raise ValueError(
+    94	                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+    95	        if not (funit is Unit(funit) and
+    96	                (tunit is None or tunit is Unit(tunit)) and
+    97	                callable(a) and
+    98	                callable(b)):
+    99	            raise ValueError(
+   100	                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+   101	        normalized.append((funit, tunit, a, b))
+   102	
+   103	    return normalized
+   104	
+   105	
+   106	class _UnitRegistry:
+   107	    """
+   108	    Manages a registry of the enabled units.
+   109	    """
+   110	
+   111	    def __init__(self, init=[], equivalencies=[]):
+   112	
+   113	        if isinstance(init, _UnitRegistry):
+   114	            # If passed another registry we don't need to rebuild everything.
+   115	            # but because these are mutable types we don't want to create
+   116	            # conflicts so everything needs to be copied.
+   117	            self._equivalencies = init._equivalencies.copy()
+   118	            self._all_units = init._all_units.copy()
+   119	            self._registry = init._registry.copy()
+   120	            self._non_prefix_units = init._non_prefix_units.copy()
+   121	            # The physical type is a dictionary containing sets as values.
+   122	            # All of these must be copied otherwise we could alter the old
+   123	            # registry.
+   124	            self._by_physical_type = {k: v.copy() for k, v in
+   125	                                      init._by_physical_type.items()}
+   126	
+   127	        else:
+   128	            self._reset_units()
+   129	            self._reset_equivalencies()
+   130	            self.add_enabled_units(init)
+   131	            self.add_enabled_equivalencies(equivalencies)
+   132	
+   133	    def _reset_units(self):
+   134	        self._all_units = set()
+   135	        self._non_prefix_units = set()
+   136	        self._registry = {}
+   137	        self._by_physical_type = {}
+   138	
+   139	    def _reset_equivalencies(self):
+   140	        self._equivalencies = set()
+   141	
+   142	    @property
+   143	    def registry(self):
+   144	        return self._registry
+   145	
+   146	    @property
+   147	    def all_units(self):
+   148	        return self._all_units
+   149	
+   150	    @property
+   151	    def non_prefix_units(self):
+   152	        return self._non_prefix_units
+   153	
+   154	    def set_enabled_units(self, units):
+   155	        """
+   156	        Sets the units enabled in the unit registry.
+   157	
+   158	        These units are searched when using
+   159	        `UnitBase.find_equivalent_units`, for example.
+   160	
+   161	        Parameters
+   162	        ----------
+   163	        units : list of sequences, dicts, or modules containing units, or units
+   164	            This is a list of things in which units may be found
+   165	            (sequences, dicts or modules), or units themselves.  The
+   166	            entire set will be "enabled" for searching through by
+   167	            methods like `UnitBase.find_equivalent_units` and
+   168	            `UnitBase.compose`.
+   169	        """
+   170	        self._reset_units()
+   171	        return self.add_enabled_units(units)
+   172	
+   173	    def add_enabled_units(self, units):
+   174	        """
+   175	        Adds to the set of units enabled in the unit registry.
+   176	
+   177	        These units are searched when using
+   178	        `UnitBase.find_equivalent_units`, for example.
+   179	
+   180	        Parameters
+   181	        ----------
+   182	        units : list of sequences, dicts, or modules containing units, or units
+   183	            This is a list of things in which units may be found
+   184	            (sequences, dicts or modules), or units themselves.  The
+   185	            entire set will be added to the "enabled" set for
+   186	            searching through by methods like
+   187	            `UnitBase.find_equivalent_units` and `UnitBase.compose`.
+   188	        """
+   189	        units = _flatten_units_collection(units)
+   190	
+   191	        for unit in units:
+   192	            # Loop through all of the names first, to ensure all of them
+   193	            # are new, then add them all as a single "transaction" below.
+   194	            for st in unit._names:
+   195	                if (st in self._registry and unit != self._registry[st]):
+   196	                    raise ValueError(
+   197	                        "Object with name {0!r} already exists in namespace. "
+   198	                        "Filter the set of units to avoid name clashes before "
+   199	                        "enabling them.".format(st))
+   200	
+   201	            for st in unit._names:
+   202	                self._registry[st] = unit
+   203	
+   204	            self._all_units.add(unit)
+   205	            if not isinstance(unit, PrefixUnit):
+   206	                self._non_prefix_units.add(unit)
+   207	
+   208	            hash = unit._get_physical_type_id()
+   209	            self._by_physical_type.setdefault(hash, set()).add(unit)
+   210	
+   211	    def get_units_with_physical_type(self, unit):
+   212	        """
+   213	        Get all units in the registry with the same physical type as
+   214	        the given unit.
+   215	
+   216	        Parameters
+   217	        ----------
+   218	        unit : UnitBase instance
+   219	        """
+   220	        return self._by_physical_type.get(unit._get_physical_type_id(), set())
+   221	
+   222	    @property
+   223	    def equivalencies(self):
+   224	        return list(self._equivalencies)
+   225	
+   226	    def set_enabled_equivalencies(self, equivalencies):
+   227	        """
+   228	        Sets the equivalencies enabled in the unit registry.
+   229	
+   230	        These equivalencies are used if no explicit equivalencies are given,
+   231	        both in unit conversion and in finding equivalent units.
+   232	
+   233	        This is meant in particular for allowing angles to be dimensionless.
+   234	        Use with care.
+   235	
+   236	        Parameters
+   237	        ----------
+   238	        equivalencies : list of equivalent pairs
+   239	            E.g., as returned by
+   240	            `~astropy.units.equivalencies.dimensionless_angles`.
+   241	        """
+   242	        self._reset_equivalencies()
+   243	        return self.add_enabled_equivalencies(equivalencies)
+   244	
+   245	    def add_enabled_equivalencies(self, equivalencies):
+   246	        """
+   247	        Adds to the set of equivalencies enabled in the unit registry.
+   248	
+   249	        These equivalencies are used if no explicit equivalencies are given,
+   250	        both in unit conversion and in finding equivalent units.
+   251	
+   252	        This is meant in particular for allowing angles to be dimensionless.
+   253	        Use with care.
+   254	
+   255	        Parameters
+   256	        ----------
+   257	        equivalencies : list of equivalent pairs
+   258	            E.g., as returned by
+   259	            `~astropy.units.equivalencies.dimensionless_angles`.
+   260	        """
+   261	        # pre-normalize list to help catch mistakes
+   262	        equivalencies = _normalize_equivalencies(equivalencies)
+   263	        self._equivalencies |= set(equivalencies)
+   264	
+   265	
+   266	class _UnitContext:
+   267	    def __init__(self, init=[], equivalencies=[]):
+   268	        _unit_registries.append(
+   269	            _UnitRegistry(init=init, equivalencies=equivalencies))
+   270	
+   271	    def __enter__(self):
+   272	        pass
+   273	
+   274	    def __exit__(self, type, value, tb):
+   275	        _unit_registries.pop()
+   276	
+   277	
+   278	_unit_registries = [_UnitRegistry()]
+   279	
+   280	
+   281	def get_current_unit_registry():
+   282	    return _unit_registries[-1]
+   283	
+   284	
+   285	def set_enabled_units(units):
+   286	    """
+   287	    Sets the units enabled in the unit registry.
+   288	
+   289	    These units are searched when using
+   290	    `UnitBase.find_equivalent_units`, for example.
+   291	
+   292	    This may be used either permanently, or as a context manager using
+   293	    the ``with`` statement (see example below).
+   294	
+   295	    Parameters
+   296	    ----------
+   297	    units : list of sequences, dicts, or modules containing units, or units
+   298	        This is a list of things in which units may be found
+   299	        (sequences, dicts or modules), or units themselves.  The
+   300	        entire set will be "enabled" for searching through by methods
+   301	        like `UnitBase.find_equivalent_units` and `UnitBase.compose`.
+   302	
+   303	    Examples
+   304	    --------
+   305	
+   306	    >>> from astropy import units as u
+   307	    >>> with u.set_enabled_units([u.pc]):
+   308	    ...     u.m.find_equivalent_units()
+   309	    ...
+   310	      Primary name | Unit definition | Aliases
+   311	    [
+   312	      pc           | 3.08568e+16 m   | parsec  ,
+   313	    ]
+   314	    >>> u.m.find_equivalent_units()
+   315	      Primary name | Unit definition | Aliases
+   316	    [
+   317	      AU           | 1.49598e+11 m   | au, astronomical_unit ,
+   318	      Angstrom     | 1e-10 m         | AA, angstrom          ,
+   319	      cm           | 0.01 m          | centimeter            ,
+   320	      earthRad     | 6.3781e+06 m    | R_earth, Rearth       ,
+   321	      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
+   322	      lyr          | 9.46073e+15 m   | lightyear             ,
+   323	      m            | irreducible     | meter                 ,
+   324	      micron       | 1e-06 m         |                       ,
+   325	      pc           | 3.08568e+16 m   | parsec                ,
+   326	      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
+   327	    ]
+   328	    """
+   329	    # get a context with a new registry, using equivalencies of the current one
+   330	    context = _UnitContext(
+   331	        equivalencies=get_current_unit_registry().equivalencies)
+   332	    # in this new current registry, enable the units requested
+   333	    get_current_unit_registry().set_enabled_units(units)
+   334	    return context
+   335	
+   336	
+   337	def add_enabled_units(units):
+   338	    """
+   339	    Adds to the set of units enabled in the unit registry.
+   340	
+   341	    These units are searched when using
+   342	    `UnitBase.find_equivalent_units`, for example.
+   343	
+   344	    This may be used either permanently, or as a context manager using
+   345	    the ``with`` statement (see example below).
+   346	
+   347	    Parameters
+   348	    ----------
+   349	    units : list of sequences, dicts, or modules containing units, or units
+   350	        This is a list of things in which units may be found
+   351	        (sequences, dicts or modules), or units themselves.  The
+   352	        entire set will be added to the "enabled" set for searching
+   353	        through by methods like `UnitBase.find_equivalent_units` and
+   354	        `UnitBase.compose`.
+   355	
+   356	    Examples
+   357	    --------
+   358	
+   359	    >>> from astropy import units as u
+   360	    >>> from astropy.units import imperial
+   361	    >>> with u.add_enabled_units(imperial):
+   362	    ...     u.m.find_equivalent_units()
+   363	    ...
+   364	      Primary name | Unit definition | Aliases
+   365	    [
+   366	      AU           | 1.49598e+11 m   | au, astronomical_unit ,
+   367	      Angstrom     | 1e-10 m         | AA, angstrom          ,
+   368	      cm           | 0.01 m          | centimeter            ,
+   369	      earthRad     | 6.3781e+06 m    | R_earth, Rearth       ,
+   370	      ft           | 0.3048 m        | foot                  ,
+   371	      fur          | 201.168 m       | furlong               ,
+   372	      inch         | 0.0254 m        |                       ,
+   373	      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
+   374	      lyr          | 9.46073e+15 m   | lightyear             ,
+   375	      m            | irreducible     | meter                 ,
+   376	      mi           | 1609.34 m       | mile                  ,
+   377	      micron       | 1e-06 m         |                       ,
+   378	      mil          | 2.54e-05 m      | thou                  ,
+   379	      nmi          | 1852 m          | nauticalmile, NM      ,
+   380	      pc           | 3.08568e+16 m   | parsec                ,
+   381	      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
+   382	      yd           | 0.9144 m        | yard                  ,
+   383	    ]
+   384	    """
+   385	    # get a context with a new registry, which is a copy of the current one
+   386	    context = _UnitContext(get_current_unit_registry())
+   387	    # in this new current registry, enable the further units requested
+   388	    get_current_unit_registry().add_enabled_units(units)
+   389	    return context
+   390	
+   391	
+   392	def set_enabled_equivalencies(equivalencies):
+   393	    """
+   394	    Sets the equivalencies enabled in the unit registry.
+   395	
+   396	    These equivalencies are used if no explicit equivalencies are given,
+   397	    both in unit conversion and in finding equivalent units.
+   398	
+   399	    This is meant in particular for allowing angles to be dimensionless.
+   400	    Use with care.
+   401	
+   402	    Parameters
+   403	    ----------
+   404	    equivalencies : list of equivalent pairs
+   405	        E.g., as returned by
+   406	        `~astropy.units.equivalencies.dimensionless_angles`.
+   407	
+   408	    Examples
+   409	    --------
+   410	    Exponentiation normally requires dimensionless quantities.  To avoid
+   411	    problems with complex phases::
+   412	
+   413	        >>> from astropy import units as u
+   414	        >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
+   415	        ...     phase = 0.5 * u.cycle
+   416	        ...     np.exp(1j*phase)  # doctest: +SKIP
+   417	        <Quantity  -1. +1.22464680e-16j>
+   418	    """
+   419	    # doctest skipped as the complex number formatting changed in numpy 1.14.
+   420	    #
+   421	    # get a context with a new registry, using all units of the current one
+   422	    context = _UnitContext(get_current_unit_registry())
+   423	    # in this new current registry, enable the equivalencies requested
+   424	    get_current_unit_registry().set_enabled_equivalencies(equivalencies)
+   425	    return context
+   426	
+   427	
+   428	def add_enabled_equivalencies(equivalencies):
+   429	    """
+   430	    Adds to the equivalencies enabled in the unit registry.
+   431	
+   432	    These equivalencies are used if no explicit equivalencies are given,
+   433	    both in unit conversion and in finding equivalent units.
+   434	
+   435	    This is meant in particular for allowing angles to be dimensionless.
+   436	    Since no equivalencies are enabled by default, generally it is recommended
+   437	    to use `set_enabled_equivalencies`.
+   438	
+   439	    Parameters
+   440	    ----------
+   441	    equivalencies : list of equivalent pairs
+   442	        E.g., as returned by
+   443	        `~astropy.units.equivalencies.dimensionless_angles`.
+   444	    """
+   445	    # get a context with a new registry, which is a copy of the current one
+   446	    context = _UnitContext(get_current_unit_registry())
+   447	    # in this new current registry, enable the further equivalencies requested
+   448	    get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+   449	    return context
+   450	
+   451	
+   452	class UnitsError(Exception):
+   453	    """
+   454	    The base class for unit-specific exceptions.
+   455	    """
+   456	
+   457	
+   458	class UnitScaleError(UnitsError, ValueError):
+   459	    """
+   460	    Used to catch the errors involving scaled units,
+   461	    which are not recognized by FITS format.
+   462	    """
+   463	    pass
+   464	
+   465	
+   466	class UnitConversionError(UnitsError, ValueError):
+   467	    """
+   468	    Used specifically for errors related to converting between units or
+   469	    interpreting units in terms of other units.
+   470	    """
+   471	
+   472	
+   473	class UnitTypeError(UnitsError, TypeError):
+   474	    """
+   475	    Used specifically for errors in setting to units<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>
+
+THOUGHT:
+Let's search for the relevant code section using grep:
+
+### This is the 3rd action:
+{"command": "grep -n \"UnrecognizedUnit\" /workspace/astropy__astropy__1.3/astropy/units/core.py"}
+
+OBSERVATION:
+grep -n "UnrecognizedUnit" /workspace/astropy__astropy__1.3/astropy/units/core.py
+27:    'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
+800:        if isinstance(other, UnrecognizedUnit):
+1675:class UnrecognizedUnit(IrreducibleUnit):
+1686:    # For UnrecognizedUnits, we want to use "standard" Python
+1692:        return "UnrecognizedUnit({0})".format(str(self))
+1714:        return isinstance(other, UnrecognizedUnit) and self.name == other.name
+1816:                return UnrecognizedUnit(s)
+1853:           `UnrecognizedUnit` instance.
+1855:         - ``'silent'``: return an `UnrecognizedUnit` instance.[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__1.3 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Let's look at the UnrecognizedUnit class and its __eq__ method:
+
+### This is the 4th action:
+{"command": "view", "path": "/workspace/astropy__astropy__1.3/astropy/units/core.py", "view_range": [1675, 1725]}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/astropy__astropy__1.3/astropy/units/core.py:
+  1675	class UnrecognizedUnit(IrreducibleUnit):
+  1676	    """
+  1677	    A unit that did not parse correctly.  This allows for
+  1678	    roundtripping it as a string, but no unit operations actually work
+  1679	    on it.
+  1680	
+  1681	    Parameters
+  1682	    ----------
+  1683	    st : str
+  1684	        The name of the unit.
+  1685	    """
+  1686	    # For UnrecognizedUnits, we want to use "standard" Python
+  1687	    # pickling, not the special case that is used for
+  1688	    # IrreducibleUnits.
+  1689	    __reduce__ = object.__reduce__
+  1690	
+  1691	    def __repr__(self):
+  1692	        return "UnrecognizedUnit({0})".format(str(self))
+  1693	
+  1694	    def __bytes__(self):
+  1695	        return self.name.encode('ascii', 'replace')
+  1696	
+  1697	    def __str__(self):
+  1698	        return self.name
+  1699	
+  1700	    def to_string(self, format=None):
+  1701	        return self.name
+  1702	
+  1703	    def _unrecognized_operator(self, *args, **kwargs):
+  1704	        raise ValueError(
+  1705	            "The unit {0!r} is unrecognized, so all arithmetic operations "
+  1706	            "with it are invalid.".format(self.name))
+  1707	
+  1708	    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
+  1709	        __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
+  1710	        _unrecognized_operator
+  1711	
+  1712	    def __eq__(self, other):
+  1713	        other = Unit(other, parse_strict='silent')
+  1714	        return isinstance(other, UnrecognizedUnit) and self.name == other.name
+  1715	
+  1716	    def __ne__(self, other):
+  1717	        return not (self == other)
+  1718	
+  1719	    def is_equivalent(self, other, equivalencies=None):
+  1720	        self._normalize_equivalencies(equivalencies)
+  1721	        return self == other
+  1722	
+  1723	    def _get_converter(self, other, equivalencies=None):
+  1724	        self._normalize_equivalencies(equivalencies)
+  1725	        raise ValueError(
+
+THOUGHT:
+Now let's look at the Unit class's __call__ method where the TypeError is being raised:
+
+### This is the 5th action:
+{"command": "view", "path": "/workspace/astropy__astropy__1.3/astropy/units/core.py", "view_range": [1800, 1820]}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/astropy__astropy__1.3/astropy/units/core.py:
+  1800	                else:
+  1801	                    # Deliberately not issubclass here. Subclasses
+  1802	                    # should use their name.
+  1803	                    if f is not unit_format.Generic:
+  1804	                        format_clause = f.name + ' '
+  1805	                    else:
+  1806	                        format_clause = ''
+  1807	                    msg = ("'{0}' did not parse as {1}unit: {2}"
+  1808	                           .format(s, format_clause, str(e)))
+  1809	                    if parse_strict == 'raise':
+  1810	                        raise ValueError(msg)
+  1811	                    elif parse_strict == 'warn':
+  1812	                        warnings.warn(msg, UnitsWarning)
+  1813	                    else:
+  1814	                        raise ValueError("'parse_strict' must be 'warn', "
+  1815	                                         "'raise' or 'silent'")
+  1816	                return UnrecognizedUnit(s)
+  1817	
+  1818	        elif isinstance(s, (int, float, np.floating, np.integer)):
+  1819	            return CompositeUnit(s, [], [])
+  1820
+
+THOUGHT:
+The issue is that when comparing an UnrecognizedUnit with None, the UnrecognizedUnit.__eq__ method tries to convert None to a Unit using Unit(None), which raises a TypeError. We need to modify the __eq__ method to handle None as a special case.
+
+Let's create a script to reproduce the error:
+
+### This is the 6th action:
+{"command": "create", "path": "/workspace/reproduce.py", "file_text": "from astropy import units as u\n\nx = u.Unit('asdf', parse_strict='silent')\nprint(\"Testing x == None:\")\nprint(x == None)  # Should be False"}
+
+OBSERVATION:
+File created successfully at: /workspace/reproduce.py
+
+THOUGHT:
+Let's run it to confirm the error:
+
+### This is the 7th action:
+{"command": "python /workspace/reproduce.py"}
+
+OBSERVATION:
+python /workspace/reproduce.py
+Testing x == None:
+Traceback (most recent call last):
+  File "/workspace/reproduce.py", line 5, in <module>
+    print(x == None)  # Should be False
+  File "/testbed/astropy/units/core.py", line 1713, in __eq__
+    other = Unit(other, parse_strict='silent')
+  File "/testbed/astropy/units/core.py", line 1822, in __call__
+    raise TypeError("None is not a valid Unit")
+TypeError: None is not a valid Unit[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__1.3 # 
+[Command finished with exit code 1]
+
+THOUGHT:
+Now let's modify the UnrecognizedUnit.__eq__ method to handle None as a special case:
+
+### This is the 8th action:
+{"command": "str_replace", "path": "/workspace/astropy__astropy__1.3/astropy/units/core.py", "old_str": "    def __eq__(self, other):\n        other = Unit(other, parse_strict='silent')\n        return isinstance(other, UnrecognizedUnit) and self.name == other.name", "new_str": "    def __eq__(self, other):\n        if other is None:\n            return False\n        other = Unit(other, parse_strict='silent')\n        return isinstance(other, UnrecognizedUnit) and self.name == other.name"}
+
+OBSERVATION:
+The file /workspace/astropy__astropy__1.3/astropy/units/core.py has been edited. Here's the result of running `cat -n` on a snippet of /workspace/astropy__astropy__1.3/astropy/units/core.py:
+  1708	    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
+  1709	        __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
+  1710	        _unrecognized_operator
+  1711	
+  1712	    def __eq__(self, other):
+  1713	        if other is None:
+  1714	            return False
+  1715	        other = Unit(other, parse_strict='silent')
+  1716	        return isinstance(other, UnrecognizedUnit) and self.name == other.name
+  1717	
+  1718	    def __ne__(self, other):
+  1719	        return not (self == other)
+  1720	
+Review the changes and make sure they are as expected. Edit the file again if necessary.
+
+THOUGHT:
+Now let's run the reproduce script again to verify the fix:
+
+### This is the 9th action:
+{"command": "python /workspace/reproduce.py"}
+
+OBSERVATION:
+python /workspace/reproduce.py
+Testing x == None:
+False[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__1.3 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Let's also test some edge cases to make sure our fix is robust:
+
+### This is the 10th action:
+{"command": "create", "path": "/workspace/test_edge_cases.py", "file_text": "from astropy import units as u\n\n# Test UnrecognizedUnit equality with None\nx = u.Unit('asdf', parse_strict='silent')\nprint(\"x == None:\", x == None)  # Should be False\nprint(\"None == x:\", None == x)  # Should be False\n\n# Test UnrecognizedUnit equality with another UnrecognizedUnit\ny = u.Unit('asdf', parse_strict='silent')\nz = u.Unit('qwerty', parse_strict='silent')\nprint(\"x == y (same name):\", x == y)  # Should be True\nprint(\"x == z (different name):\", x == z)  # Should be False\n\n# Test UnrecognizedUnit equality with a valid Unit\nmeter = u.Unit('m')\nprint(\"x == meter:\", x == meter)  # Should be False\nprint(\"meter == x:\", meter == x)  # Should be False"}
+
+OBSERVATION:
+File created successfully at: /workspace/test_edge_cases.py
+
+### This is the 11th action:
+{"command": "python /workspace/test_edge_cases.py"}
+
+OBSERVATION:
+python /workspace/test_edge_cases.py
+x == None: False
+None == x: False
+x == y (same name): True
+x == z (different name): False
+x == meter: False
+meter == x: False[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__1.3 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Perfect! Our fix works correctly for all test cases:
+
+1. UnrecognizedUnit equals None returns False as expected
+2. None equals UnrecognizedUnit also returns False (symmetry preserved)
+3. Two UnrecognizedUnits with the same name are equal
+4. Two UnrecognizedUnits with different names are not equal
+5. UnrecognizedUnit is not equal to a valid Unit
+6. Valid Unit is not equal to UnrecognizedUnit (symmetry preserved)
+
+The fix we implemented:
+1. Adds a special case check for None in UnrecognizedUnit.__eq__
+2. Returns False immediately if the other operand is None
+3. Otherwise proceeds with the original logic of converting the other operand to a Unit and comparing
+
+This change satisfies the requirements in the PR description by making `x == None` return False instead of raising a TypeError, while maintaining all the expected equality behavior for other cases.
+
+The fix is minimal and focused on the specific issue, only modifying the __eq__ method of UnrecognizedUnit to handle the None case properly. This is the most direct way to fix the issue without introducing unnecessary complexity or potential side effects.
+
+role: user
+Please continue working on the task on whatever approach you think is suitable.
+If you think you have solved the task, please first send your answer to user through message and then finish the interaction.
+IMPORTANT: YOU SHOULD NEVER ASK FOR HUMAN HELP.

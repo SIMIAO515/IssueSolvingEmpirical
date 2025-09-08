@@ -1,0 +1,1637 @@
+role: system
+You are a helpful assistant that can interact with a computer to solve tasks.
+<IMPORTANT>
+* If user provides a path, you should NOT assume it's relative to the current working directory. Instead, you should explore the file system to find the file before working on it.
+</IMPORTANT>
+
+
+role: user
+<uploaded_files>
+/workspace/django__django__3.1
+</uploaded_files>
+I've uploaded a python code repository in the directory django__django__3.1. Consider the following PR description:
+
+<pr_description>
+django.utils.http.parse_http_date two digit year check is incorrect
+Description
+	 
+		(last modified by Ad Timmering)
+	 
+RFC 850 does not mention this, but in RFC 7231 (and there's something similar in RFC 2822), there's the following quote:
+Recipients of a timestamp value in rfc850-date format, which uses a
+two-digit year, MUST interpret a timestamp that appears to be more
+than 50 years in the future as representing the most recent year in
+the past that had the same last two digits.
+Current logic is hard coded to consider 0-69 to be in 2000-2069, and 70-99 to be 1970-1999, instead of comparing versus the current year.
+
+</pr_description>
+
+Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+Your task is to make the minimal changes to non-tests files in the /repo directory to ensure the <pr_description> is satisfied.
+Follow these steps to resolve the issue:
+1. As a first step, it might be a good idea to explore the repo to familiarize yourself with its structure.
+2. Create a script to reproduce the error and execute it with `python <filename.py>` using the BashTool, to confirm the error
+3. Edit the sourcecode of the repo to resolve the issue
+4. Rerun your reproduce script and confirm that the error is fixed!
+5. Think about edgecases and make sure your fix handles them as well
+Your thinking should be thorough and so it's fine if it's very long.
+
+
+THOUGHT:
+I'll help you implement the necessary changes to meet the requirements specified in the PR description. Let's follow the steps:
+
+1. First, let's explore the repository structure to locate the relevant files:
+
+### This is the 1st action:
+{"command": "ls -R /workspace/django__django__3.1"}
+
+OBSERVATION:
+ls -R /workspace/django__django__3.1
+/workspace/django__django__3.1:
+AUTHORS		  Gruntfile.js	  MANIFEST.in  extras	     setup.cfg
+CONTRIBUTING.rst  INSTALL	  README.rst   js_tests      setup.py
+Django.egg-info   LICENSE	  django       package.json  tests
+FUNDING.yml	  LICENSE.python  docs	       scripts	     tox.ini
+
+/workspace/django__django__3.1/Django.egg-info:
+PKG-INFO     dependency_links.txt  not-zip-safe  top_level.txt
+SOURCES.txt  entry_points.txt	   requires.txt
+
+/workspace/django__django__3.1/django:
+__init__.py  apps  contrib  dispatch  middleware    templatetags  utils
+__main__.py  bin   core     forms     shortcuts.py  test	  views
+__pycache__  conf  db	    http      template	    urls
+
+/workspace/django__django__3.1/django/__pycache__:
+__init__.cpython-36.pyc
+
+/workspace/django__django__3.1/django/apps:
+__init__.py  config.py	registry.py
+
+/workspace/django__django__3.1/django/bin:
+django-admin.py
+
+/workspace/django__django__3.1/django/conf:
+__init__.py  app_template  global_settings.py  locale  project_template  urls
+
+/workspace/django__django__3.1/django/conf/app_template:
+__init__.py-tpl  apps.py-tpl  models.py-tpl  views.py-tpl
+admin.py-tpl	 migrations   tests.py-tpl
+
+/workspace/django__django__3.1/django/conf/app_template/migrations:
+__init__.py-tpl
+
+/workspace/django__django__3.1/django/conf/locale:
+__init__.py  br     dsb    es_CO  fi  hr   it	lb  nb	pt_BR	 sv   uk
+af	     bs     el	   es_MX  fr  hsb  ja	lt  ne	ro	 sw   ur
+ar	     ca     en	   es_NI  fy  hu   ka	lv  nl	ru	 ta   vi
+ast	     cs     en_AU  es_PR  ga  hy   kab	mk  nn	sk	 te   zh_Hans
+az	     cy     en_GB  es_VE  gd  ia   kk	ml  os	sl	 th   zh_Hant
+be	     da     eo	   et	  gl  id   km	mn  pa	sq	 tr
+bg	     de     es	   eu	  he  io   kn	mr  pl	sr	 tt
+bn	     de_CH  es_AR  fa	  hi  is   ko	my  pt	sr_Latn  udm
+
+/workspace/django__django__3.1/django/conf/locale/af:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/af/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ar:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ar/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ast:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/ast/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/az:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/az/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/be:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/be/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/bg:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/bg/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/bn:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/bn/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/br:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/br/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/bs:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/bs/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ca:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ca/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/cs:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/cs/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/cy:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/cy/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/da:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/da/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/de:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/de/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/de_CH:
+__init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/dsb:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/dsb/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/el:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/el/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/en:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/en/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/en_AU:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/en_AU/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/en_GB:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/en_GB/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/eo:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/eo/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/es:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/es_AR:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es_AR/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/es_CO:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es_CO/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/es_MX:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es_MX/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/es_NI:
+__init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es_PR:
+__init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/es_VE:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/es_VE/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/et:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/et/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/eu:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/eu/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/fa:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/fa/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/fi:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/fi/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/fr:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/fr/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/fy:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/fy/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ga:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ga/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/gd:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/gd/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/gl:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/gl/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/he:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/he/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/hi:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/hi/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/hr:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/hr/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/hsb:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/hsb/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/hu:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/hu/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/hy:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/hy/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ia:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/ia/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/id:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/id/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/io:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/io/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/is:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/is/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/it:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/it/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ja:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ja/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ka:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ka/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/kab:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/kab/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/kk:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/kk/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/km:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/km/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/kn:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/kn/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ko:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ko/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/lb:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/lb/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/lt:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/lt/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/lv:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/lv/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/mk:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/mk/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ml:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ml/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/mn:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/mn/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/mr:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/mr/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/my:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/my/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/nb:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/nb/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ne:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/ne/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/nl:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/nl/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/nn:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/nn/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/os:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/os/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/pa:
+LC_MESSAGES
+
+/workspace/django__django__3.1/django/conf/locale/pa/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/pl:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/pl/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/pt:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/pt/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/pt_BR:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/pt_BR/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ro:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ro/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/ru:
+LC_MESSAGES  __init__.py  formats.py
+
+/workspace/django__django__3.1/django/conf/locale/ru/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/django/conf/locale/sk:
+LC_MESSAGES  __ini
+[... Observation truncated due to length ...]
+ts/template_tests/recursive_templates/fs2:
+recursive.html
+
+/workspace/django__django__3.1/tests/template_tests/recursive_templates/fs3:
+recursive.html
+
+/workspace/django__django__3.1/tests/template_tests/relative_templates:
+dir1  error_extends.html  error_include.html  one.html	three.html  two.html
+
+/workspace/django__django__3.1/tests/template_tests/relative_templates/dir1:
+dir2	     one.html	one2.html  three.html
+looped.html  one1.html	one3.html  two.html
+
+/workspace/django__django__3.1/tests/template_tests/relative_templates/dir1/dir2:
+inc1.html  inc2.html  include_content.html  one.html
+
+/workspace/django__django__3.1/tests/template_tests/syntax_tests:
+__init__.py	       test_for.py	       test_regroup.py
+i18n		       test_if.py	       test_resetcycle.py
+test_autoescape.py     test_if_changed.py      test_setup.py
+test_basic.py	       test_if_equal.py        test_simple_tag.py
+test_builtins.py       test_include.py	       test_spaceless.py
+test_cache.py	       test_invalid_string.py  test_static.py
+test_comment.py        test_list_index.py      test_template_tag.py
+test_cycle.py	       test_load.py	       test_url.py
+test_exceptions.py     test_lorem.py	       test_verbatim.py
+test_extends.py        test_multiline.py       test_width_ratio.py
+test_filter_syntax.py  test_named_endblock.py  test_with.py
+test_filter_tag.py     test_now.py
+test_firstof.py        test_numpy.py
+
+/workspace/django__django__3.1/tests/template_tests/syntax_tests/i18n:
+__init__.py			 test_get_current_language_bidi.py
+base.py				 test_get_language_info.py
+test_blocktrans.py		 test_get_language_info_list.py
+test_filters.py			 test_language.py
+test_get_available_languages.py  test_trans.py
+test_get_current_language.py	 test_underscore_syntax.py
+
+/workspace/django__django__3.1/tests/template_tests/templates:
+ 27584_child.html	   index.html
+ 27584_parent.html	   priority
+ 27956_child.html	   recursive_include.html
+ 27956_parent.html	   response.html
+ broken_base.html	   second
+ first			  'ssi include with spaces.html'
+ include_tpl.html	   ssi_include.html
+ included_base.html	   template_tests
+ included_content.html	   test_context.html
+ inclusion.html		   test_context_stack.html
+ inclusion_base.html	   test_extends_error.html
+ inclusion_extends1.html   test_incl_tag_use_l10n.html
+ inclusion_extends2.html   test_include_error.html
+
+/workspace/django__django__3.1/tests/template_tests/templates/first:
+test.html
+
+/workspace/django__django__3.1/tests/template_tests/templates/priority:
+foo.html
+
+/workspace/django__django__3.1/tests/template_tests/templates/second:
+test.html
+
+/workspace/django__django__3.1/tests/template_tests/templates/template_tests:
+using.html
+
+/workspace/django__django__3.1/tests/template_tests/templatetags:
+__init__.py  custom.py	   subpackage	 testtags.py
+bad_tag.py   inclusion.py  tag_27584.py
+
+/workspace/django__django__3.1/tests/template_tests/templatetags/subpackage:
+__init__.py  echo.py
+
+/workspace/django__django__3.1/tests/templates:
+base.html  custom_admin   form_view.html  views
+comments   extended.html  login.html
+
+/workspace/django__django__3.1/tests/templates/comments:
+comment_notification_email.txt
+
+/workspace/django__django__3.1/tests/templates/custom_admin:
+add_form.html			   login.html
+app_index.html			   logout.html
+change_form.html		   object_history.html
+change_list.html		   password_change_done.html
+delete_confirmation.html	   password_change_form.html
+delete_selected_confirmation.html  popup_response.html
+index.html
+
+/workspace/django__django__3.1/tests/templates/views:
+article_archive_day.html     article_list.html
+article_archive_month.html   datearticle_archive_month.html
+article_confirm_delete.html  urlarticle_detail.html
+article_detail.html	     urlarticle_form.html
+article_form.html
+
+/workspace/django__django__3.1/tests/test_client:
+__init__.py	  test_conditional_content_removal.py  tests.py  views.py
+auth_backends.py  test_fakepayload.py		       urls.py
+
+/workspace/django__django__3.1/tests/test_client_regress:
+__init__.py	  bad_templates		 models.py   templates	urls.py
+auth_backends.py  context_processors.py  session.py  tests.py	views.py
+
+/workspace/django__django__3.1/tests/test_client_regress/bad_templates:
+404.html
+
+/workspace/django__django__3.1/tests/test_client_regress/templates:
+request_context.html  unicode.html
+
+/workspace/django__django__3.1/tests/test_exceptions:
+__init__.py  test_validation_error.py
+
+/workspace/django__django__3.1/tests/test_runner:
+__init__.py  runner.py		test_discover_runner.py  tests.py
+models.py    test_debug_sql.py	test_parallel.py
+
+/workspace/django__django__3.1/tests/test_runner_apps:
+__init__.py  databases	sample	simple	tagged
+
+/workspace/django__django__3.1/tests/test_runner_apps/databases:
+__init__.py  tests.py
+
+/workspace/django__django__3.1/tests/test_runner_apps/sample:
+__init__.py  doctests.py  empty.py  pattern_tests.py  tests  tests_sample.py
+
+/workspace/django__django__3.1/tests/test_runner_apps/sample/tests:
+__init__.py  tests.py
+
+/workspace/django__django__3.1/tests/test_runner_apps/simple:
+__init__.py  tests.py
+
+/workspace/django__django__3.1/tests/test_runner_apps/tagged:
+__init__.py  tests.py  tests_inheritance.py
+
+/workspace/django__django__3.1/tests/test_utils:
+__init__.py  models.py	test_testcase.py	     tests.py  views.py
+fixtures     templates	test_transactiontestcase.py  urls.py
+
+/workspace/django__django__3.1/tests/test_utils/fixtures:
+should_not_be_loaded.json
+
+/workspace/django__django__3.1/tests/test_utils/templates:
+template_used
+
+/workspace/django__django__3.1/tests/test_utils/templates/template_used:
+alternative.html  base.html  extends.html  include.html
+
+/workspace/django__django__3.1/tests/timezones:
+__init__.py  admin.py  forms.py  models.py  tests.py  urls.py
+
+/workspace/django__django__3.1/tests/transaction_hooks:
+__init__.py  models.py	tests.py
+
+/workspace/django__django__3.1/tests/transactions:
+__init__.py  models.py	tests.py
+
+/workspace/django__django__3.1/tests/unmanaged_models:
+__init__.py  models.py	tests.py
+
+/workspace/django__django__3.1/tests/update:
+__init__.py  models.py	tests.py
+
+/workspace/django__django__3.1/tests/update_only_fields:
+__init__.py  models.py	tests.py
+
+/workspace/django__django__3.1/tests/urlpatterns:
+__init__.py	   included_urls.py	path_dynamic_urls.py  tests.py
+converter_urls.py  more_urls.py		path_urls.py	      views.py
+converters.py	   path_base64_urls.py	test_resolvers.py
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse:
+__init__.py		    no_urls.py
+erroneous_urls.py	    nonimported_module.py
+extra_urls.py		    reverse_lazy_urls.py
+included_app_urls.py	    test_localeregexdescriptor.py
+included_named_urls.py	    tests.py
+included_named_urls2.py     translations
+included_namespace_urls.py  urlconf_inner.py
+included_no_kwargs_urls.py  urlconf_outer.py
+included_urls.py	    urls.py
+included_urls2.py	    urls_error_handlers.py
+method_view_urls.py	    urls_error_handlers_callables.py
+middleware.py		    urls_without_handlers.py
+named_urls.py		    utils.py
+named_urls_conflict.py	    views.py
+namespace_urls.py	    views_broken.py
+nested_urls.py
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations/locale:
+__init__.py  de  fr
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations/locale/de:
+LC_MESSAGES  __init__.py
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations/locale/de/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations/locale/fr:
+LC_MESSAGES  __init__.py
+
+/workspace/django__django__3.1/tests/urlpatterns_reverse/translations/locale/fr/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/tests/user_commands:
+__init__.py  eggs  management  models.py  tests.py  urls.py
+
+/workspace/django__django__3.1/tests/user_commands/eggs:
+basic.egg
+
+/workspace/django__django__3.1/tests/user_commands/management:
+commands
+
+/workspace/django__django__3.1/tests/user_commands/management/commands:
+common_args.py			no_translations.py  subparser.py
+dance.py			required_option.py  subparser_dest.py
+hal.py				reverse_url.py	    subparser_required.py
+mutually_exclusive_required.py	set_option.py	    transaction.py
+
+/workspace/django__django__3.1/tests/utils_tests:
+__init__.py		test_duration.py	       test_module_loading.py
+archives		test_encoding.py	       test_no_submodule.py
+eggs			test_encoding_deprecations.py  test_numberformat.py
+files			test_feedgenerator.py	       test_os_utils.py
+models.py		test_functional.py	       test_regex_helper.py
+test_archive.py		test_hashable.py	       test_safestring.py
+test_autoreload.py	test_html.py		       test_simplelazyobject.py
+test_baseconv.py	test_http.py		       test_termcolors.py
+test_crypto.py		test_inspect.py		       test_text.py
+test_datastructures.py	test_ipv6.py		       test_timesince.py
+test_dateformat.py	test_jslex.py		       test_timezone.py
+test_dateparse.py	test_lazyobject.py	       test_topological_sort.py
+test_datetime_safe.py	test_lorem_ipsum.py	       test_tree.py
+test_decorators.py	test_module		       utils.py
+
+/workspace/django__django__3.1/tests/utils_tests/archives:
+foobar.tar	 foobar.tar.xz		  leadpath_foobar.tar.gz
+foobar.tar.bz2	 foobar.zip		  leadpath_foobar.tar.lzma
+foobar.tar.gz	 leadpath_foobar.tar	  leadpath_foobar.tar.xz
+foobar.tar.lzma  leadpath_foobar.tar.bz2  leadpath_foobar.zip
+
+/workspace/django__django__3.1/tests/utils_tests/eggs:
+test_egg.egg
+
+/workspace/django__django__3.1/tests/utils_tests/files:
+strip_tags1.html  strip_tags2.txt
+
+/workspace/django__django__3.1/tests/utils_tests/test_module:
+__init__.py	       another_good_module.py  child_module
+another_bad_module.py  bad_module.py	       good_module.py
+
+/workspace/django__django__3.1/tests/utils_tests/test_module/child_module:
+__init__.py  grandchild_module.py
+
+/workspace/django__django__3.1/tests/validation:
+__init__.py  test_custom_messages.py  test_picklable.py  test_validators.py
+models.py    test_error_messages.py   test_unique.py	 tests.py
+
+/workspace/django__django__3.1/tests/validators:
+__init__.py  invalid_urls.txt  tests.py  valid_urls.txt
+
+/workspace/django__django__3.1/tests/version:
+__init__.py  tests.py
+
+/workspace/django__django__3.1/tests/view_tests:
+__init__.py  app4	      media			tests
+app0	     app5	      models.py			urls.py
+app1	     default_urls.py  regression_21530_urls.py	views.py
+app2	     generic_urls.py  templates
+app3	     locale	      templatetags
+
+/workspace/django__django__3.1/tests/view_tests/app0:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app0/locale:
+en
+
+/workspace/django__django__3.1/tests/view_tests/app0/locale/en:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app0/locale/en/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/app1:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app1/locale:
+fr
+
+/workspace/django__django__3.1/tests/view_tests/app1/locale/fr:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app1/locale/fr/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/app2:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app2/locale:
+fr
+
+/workspace/django__django__3.1/tests/view_tests/app2/locale/fr:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app2/locale/fr/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/app3:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app3/locale:
+es_AR
+
+/workspace/django__django__3.1/tests/view_tests/app3/locale/es_AR:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app3/locale/es_AR/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/app4:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app4/locale:
+es_AR
+
+/workspace/django__django__3.1/tests/view_tests/app4/locale/es_AR:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app4/locale/es_AR/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/app5:
+__init__.py  locale
+
+/workspace/django__django__3.1/tests/view_tests/app5/locale:
+fr
+
+/workspace/django__django__3.1/tests/view_tests/app5/locale/fr:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/app5/locale/fr/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale:
+de  en_GB  es  fr  nl  pt  ru
+
+/workspace/django__django__3.1/tests/view_tests/locale/de:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/de/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/en_GB:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/en_GB/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/es:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/es/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/fr:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/fr/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/nl:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/nl/LC_MESSAGES:
+django.mo  django.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/pt:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/pt/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/locale/ru:
+LC_MESSAGES
+
+/workspace/django__django__3.1/tests/view_tests/locale/ru/LC_MESSAGES:
+djangojs.mo  djangojs.po
+
+/workspace/django__django__3.1/tests/view_tests/media:
+%2F.txt  file.txt  file.txt.gz	file.unknown  long-line.txt  subdir
+
+/workspace/django__django__3.1/tests/view_tests/media/subdir:
+visible
+
+/workspace/django__django__3.1/tests/view_tests/templates:
+debug  jsi18n-multi-catalogs.html  jsi18n.html
+
+/workspace/django__django__3.1/tests/view_tests/templates/debug:
+template_error.html  template_exception.html
+
+/workspace/django__django__3.1/tests/view_tests/templatetags:
+__init__.py  debugtags.py
+
+/workspace/django__django__3.1/tests/view_tests/tests:
+__init__.py   test_debug.py	test_i18n.py  test_specials.py
+test_csrf.py  test_defaults.py	test_json.py  test_static.py
+
+/workspace/django__django__3.1/tests/wsgi:
+__init__.py  tests.py  urls.py	wsgi.py[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Based on the repository structure and the PR description, we need to focus on the `django.utils.http.parse_http_date` function. Let's first locate this file:
+
+### This is the 2nd action:
+{"command": "find /workspace/django__django__3.1 -type f -name \"http.py\""}
+
+OBSERVATION:
+find /workspace/django__django__3.1 -type f -name "http.py"[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Let me try a different approach:
+
+### This is the 3rd action:
+{"command": "cd /workspace/django__django__3.1 && find . -type f -exec grep -l \"parse_http_date\" {} \\;"}
+
+OBSERVATION:
+cd /workspace/django__django__3.1 && find . -type f -exec grep -l "parse_http_date" {} \;
+./django/middleware/http.py
+./django/utils/cache.py
+./django/utils/http.py
+./django/views/static.py
+./tests/utils_tests/test_http.py[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Great! Let's examine the `django/utils/http.py` file since that's where the function is defined:
+
+### This is the 4th action:
+{"command": "view", "path": "/workspace/django__django__3.1/django/utils/http.py"}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/django__django__3.1/django/utils/http.py:
+     1	import base64
+     2	import calendar
+     3	import datetime
+     4	import re
+     5	import unicodedata
+     6	import warnings
+     7	from binascii import Error as BinasciiError
+     8	from email.utils import formatdate
+     9	from urllib.parse import (
+    10	    ParseResult, SplitResult, _coerce_args, _splitnetloc, _splitparams, quote,
+    11	    quote_plus, scheme_chars, unquote, unquote_plus,
+    12	    urlencode as original_urlencode, uses_params,
+    13	)
+    14	
+    15	from django.core.exceptions import TooManyFieldsSent
+    16	from django.utils.datastructures import MultiValueDict
+    17	from django.utils.deprecation import RemovedInDjango40Warning
+    18	from django.utils.functional import keep_lazy_text
+    19	
+    20	# based on RFC 7232, Appendix C
+    21	ETAG_MATCH = re.compile(r'''
+    22	    \A(      # start of string and capture group
+    23	    (?:W/)?  # optional weak indicator
+    24	    "        # opening quote
+    25	    [^"]*    # any sequence of non-quote characters
+    26	    "        # end quote
+    27	    )\Z      # end of string and capture group
+    28	''', re.X)
+    29	
+    30	MONTHS = 'jan feb mar apr may jun jul aug sep oct nov dec'.split()
+    31	__D = r'(?P<day>\d{2})'
+    32	__D2 = r'(?P<day>[ \d]\d)'
+    33	__M = r'(?P<mon>\w{3})'
+    34	__Y = r'(?P<year>\d{4})'
+    35	__Y2 = r'(?P<year>\d{2})'
+    36	__T = r'(?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})'
+    37	RFC1123_DATE = re.compile(r'^\w{3}, %s %s %s %s GMT$' % (__D, __M, __Y, __T))
+    38	RFC850_DATE = re.compile(r'^\w{6,9}, %s-%s-%s %s GMT$' % (__D, __M, __Y2, __T))
+    39	ASCTIME_DATE = re.compile(r'^\w{3} %s %s %s %s$' % (__M, __D2, __T, __Y))
+    40	
+    41	RFC3986_GENDELIMS = ":/?#[]@"
+    42	RFC3986_SUBDELIMS = "!$&'()*+,;="
+    43	
+    44	FIELDS_MATCH = re.compile('[&;]')
+    45	
+    46	
+    47	@keep_lazy_text
+    48	def urlquote(url, safe='/'):
+    49	    """
+    50	    A legacy compatibility wrapper to Python's urllib.parse.quote() function.
+    51	    (was used for unicode handling on Python 2)
+    52	    """
+    53	    warnings.warn(
+    54	        'django.utils.http.urlquote() is deprecated in favor of '
+    55	        'urllib.parse.quote().',
+    56	        RemovedInDjango40Warning, stacklevel=2,
+    57	    )
+    58	    return quote(url, safe)
+    59	
+    60	
+    61	@keep_lazy_text
+    62	def urlquote_plus(url, safe=''):
+    63	    """
+    64	    A legacy compatibility wrapper to Python's urllib.parse.quote_plus()
+    65	    function. (was used for unicode handling on Python 2)
+    66	    """
+    67	    warnings.warn(
+    68	        'django.utils.http.urlquote_plus() is deprecated in favor of '
+    69	        'urllib.parse.quote_plus(),',
+    70	        RemovedInDjango40Warning, stacklevel=2,
+    71	    )
+    72	    return quote_plus(url, safe)
+    73	
+    74	
+    75	@keep_lazy_text
+    76	def urlunquote(quoted_url):
+    77	    """
+    78	    A legacy compatibility wrapper to Python's urllib.parse.unquote() function.
+    79	    (was used for unicode handling on Python 2)
+    80	    """
+    81	    warnings.warn(
+    82	        'django.utils.http.urlunquote() is deprecated in favor of '
+    83	        'urllib.parse.unquote().',
+    84	        RemovedInDjango40Warning, stacklevel=2,
+    85	    )
+    86	    return unquote(quoted_url)
+    87	
+    88	
+    89	@keep_lazy_text
+    90	def urlunquote_plus(quoted_url):
+    91	    """
+    92	    A legacy compatibility wrapper to Python's urllib.parse.unquote_plus()
+    93	    function. (was used for unicode handling on Python 2)
+    94	    """
+    95	    warnings.warn(
+    96	        'django.utils.http.urlunquote_plus() is deprecated in favor of '
+    97	        'urllib.parse.unquote_plus().',
+    98	        RemovedInDjango40Warning, stacklevel=2,
+    99	    )
+   100	    return unquote_plus(quoted_url)
+   101	
+   102	
+   103	def urlencode(query, doseq=False):
+   104	    """
+   105	    A version of Python's urllib.parse.urlencode() function that can operate on
+   106	    MultiValueDict and non-string values.
+   107	    """
+   108	    if isinstance(query, MultiValueDict):
+   109	        query = query.lists()
+   110	    elif hasattr(query, 'items'):
+   111	        query = query.items()
+   112	    query_params = []
+   113	    for key, value in query:
+   114	        if value is None:
+   115	            raise TypeError(
+   116	                "Cannot encode None for key '%s' in a query string. Did you "
+   117	                "mean to pass an empty string or omit the value?" % key
+   118	            )
+   119	        elif not doseq or isinstance(value, (str, bytes)):
+   120	            query_val = value
+   121	        else:
+   122	            try:
+   123	                itr = iter(value)
+   124	            except TypeError:
+   125	                query_val = value
+   126	            else:
+   127	                # Consume generators and iterators, when doseq=True, to
+   128	                # work around https://bugs.python.org/issue31706.
+   129	                query_val = []
+   130	                for item in itr:
+   131	                    if item is None:
+   132	                        raise TypeError(
+   133	                            "Cannot encode None for key '%s' in a query "
+   134	                            "string. Did you mean to pass an empty string or "
+   135	                            "omit the value?" % key
+   136	                        )
+   137	                    elif not isinstance(item, bytes):
+   138	                        item = str(item)
+   139	                    query_val.append(item)
+   140	        query_params.append((key, query_val))
+   141	    return original_urlencode(query_params, doseq)
+   142	
+   143	
+   144	def http_date(epoch_seconds=None):
+   145	    """
+   146	    Format the time to match the RFC1123 date format as specified by HTTP
+   147	    RFC7231 section 7.1.1.1.
+   148	
+   149	    `epoch_seconds` is a floating point number expressed in seconds since the
+   150	    epoch, in UTC - such as that outputted by time.time(). If set to None, it
+   151	    defaults to the current time.
+   152	
+   153	    Output a string in the format 'Wdy, DD Mon YYYY HH:MM:SS GMT'.
+   154	    """
+   155	    return formatdate(epoch_seconds, usegmt=True)
+   156	
+   157	
+   158	def parse_http_date(date):
+   159	    """
+   160	    Parse a date format as specified by HTTP RFC7231 section 7.1.1.1.
+   161	
+   162	    The three formats allowed by the RFC are accepted, even if only the first
+   163	    one is still in widespread use.
+   164	
+   165	    Return an integer expressed in seconds since the epoch, in UTC.
+   166	    """
+   167	    # email.utils.parsedate() does the job for RFC1123 dates; unfortunately
+   168	    # RFC7231 makes it mandatory to support RFC850 dates too. So we roll
+   169	    # our own RFC-compliant parsing.
+   170	    for regex in RFC1123_DATE, RFC850_DATE, ASCTIME_DATE:
+   171	        m = regex.match(date)
+   172	        if m is not None:
+   173	            break
+   174	    else:
+   175	        raise ValueError("%r is not in a valid HTTP date format" % date)
+   176	    try:
+   177	        year = int(m.group('year'))
+   178	        if year < 100:
+   179	            if year < 70:
+   180	                year += 2000
+   181	            else:
+   182	                year += 1900
+   183	        month = MONTHS.index(m.group('mon').lower()) + 1
+   184	        day = int(m.group('day'))
+   185	        hour = int(m.group('hour'))
+   186	        min = int(m.group('min'))
+   187	        sec = int(m.group('sec'))
+   188	        result = datetime.datetime(year, month, day, hour, min, sec)
+   189	        return calendar.timegm(result.utctimetuple())
+   190	    except Exception as exc:
+   191	        raise ValueError("%r is not a valid date" % date) from exc
+   192	
+   193	
+   194	def parse_http_date_safe(date):
+   195	    """
+   196	    Same as parse_http_date, but return None if the input is invalid.
+   197	    """
+   198	    try:
+   199	        return parse_http_date(date)
+   200	    except Exception:
+   201	        pass
+   202	
+   203	
+   204	# Base 36 functions: useful for generating compact URLs
+   205	
+   206	def base36_to_int(s):
+   207	    """
+   208	    Convert a base 36 string to an int. Raise ValueError if the input won't fit
+   209	    into an int.
+   210	    """
+   211	    # To prevent overconsumption of server resources, reject any
+   212	    # base36 string that is longer than 13 base36 digits (13 digits
+   213	    # is sufficient to base36-encode any 64-bit integer)
+   214	    if len(s) > 13:
+   215	        raise ValueError("Base36 input too large")
+   216	    return int(s, 36)
+   217	
+   218	
+   219	def int_to_base36(i):
+   220	    """Convert an integer to a base36 string."""
+   221	    char_set = '0123456789abcdefghijklmnopqrstuvwxyz'
+   222	    if i < 0:
+   223	        raise ValueError("Negative base36 conversion input.")
+   224	    if i < 36:
+   225	        return char_set[i]
+   226	    b36 = ''
+   227	    while i != 0:
+   228	        i, n = divmod(i, 36)
+   229	        b36 = char_set[n] + b36
+   230	    return b36
+   231	
+   232	
+   233	def urlsafe_base64_encode(s):
+   234	    """
+   235	    Encode a bytestring to a base64 string for use in URLs. Strip any trailing
+   236	    equal signs.
+   237	    """
+   238	    return base64.urlsafe_b64encode(s).rstrip(b'\n=').decode('ascii')
+   239	
+   240	
+   241	def urlsafe_base64_decode(s):
+   242	    """
+   243	    Decode a base64 encoded string. Add back any trailing equal signs that
+   244	    might have been stripped.
+   245	    """
+   246	    s = s.encode()
+   247	    try:
+   248	        return base64.urlsafe_b64decode(s.ljust(len(s) + len(s) % 4, b'='))
+   249	    except (LookupError, BinasciiError) as e:
+   250	        raise ValueError(e)
+   251	
+   252	
+   253	def parse_etags(etag_str):
+   254	    """
+   255	    Parse a string of ETags given in an If-None-Match or If-Match header as
+   256	    defined by RFC 7232. Return a list of quoted ETags, or ['*'] if all ETags
+   257	    should be matched.
+   258	    """
+   259	    if etag_str.strip() == '*':
+   260	        return ['*']
+   261	    else:
+   262	        # Parse each ETag individually, and return any that are valid.
+   263	        etag_matches = (ETAG_MATCH.match(etag.strip()) for etag in etag_str.split(','))
+   264	        return [match.group(1) for match in etag_matches if match]
+   265	
+   266	
+   267	def quote_etag(etag_str):
+   268	    """
+   269	    If the provided string is already a quoted ETag, return it. Otherwise, wrap
+   270	    the string in quotes, making it a strong ETag.
+   271	    """
+   272	    if ETAG_MATCH.match(etag_str):
+   273	        return etag_str
+   274	    else:
+   275	        return '"%s"' % etag_str
+   276	
+   277	
+   278	def is_same_domain(host, pattern):
+   279	    """
+   280	    Return ``True`` if the host is either an exact match or a match
+   281	    to the wildcard pattern.
+   282	
+   283	    Any pattern beginning with a period matches a domain and all of its
+   284	    subdomains. (e.g. ``.example.com`` matches ``example.com`` and
+   285	    ``foo.example.com``). Anything else is an exact string match.
+   286	    """
+   287	    if not pattern:
+   288	        return False
+   289	
+   290	    pattern = pattern.lower()
+   291	    return (
+   292	        pattern[0] == '.' and (host.endswith(pattern) or host == pattern[1:]) or
+   293	        pattern == host
+   294	    )
+   295	
+   296	
+   297	def url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
+   298	    """
+   299	    Return ``True`` if the url uses an allowed host and a safe scheme.
+   300	
+   301	    Always return ``False`` on an empty url.
+   302	
+   303	    If ``require_https`` is ``True``, only 'https' will be considered a valid
+   304	    scheme, as opposed to 'http' and 'https' with the default, ``False``.
+   305	
+   306	    Note: "True" doesn't entail that a URL is "safe". It may still be e.g.
+   307	    quoted incorrectly. Ensure to also use django.utils.encoding.iri_to_uri()
+   308	    on the path component of untrusted URLs.
+   309	    """
+   310	    if url is not None:
+   311	        url = url.strip()
+   312	    if not url:
+   313	        return False
+   314	    if allowed_hosts is None:
+   315	        allowed_hosts = set()
+   316	    elif isinstance(allowed_hosts, str):
+   317	        allowed_hosts = {allowed_hosts}
+   318	    # Chrome treats \ completely as / in paths but it could be part of some
+   319	    # basic auth credentials so we need to check both URLs.
+   320	    return (
+   321	        _url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=require_https) and
+   322	        _url_has_allowed_host_and_scheme(url.replace('\\', '/'), allowed_hosts, require_https=require_https)
+   323	    )
+   324	
+   325	
+   326	def is_safe_url(url, allowed_hosts, require_https=False):
+   327	    warnings.warn(
+   328	        'django.utils.http.is_safe_url() is deprecated in favor of '
+   329	        'url_has_allowed_host_and_scheme().',
+   330	        RemovedInDjango40Warning, stacklevel=2,
+   331	    )
+   332	    return url_has_allowed_host_and_scheme(url, allowed_hosts, require_https)
+   333	
+   334	
+   335	# Copied from urllib.parse.urlparse() but uses fixed urlsplit() function.
+   336	def _urlparse(url, scheme='', allow_fragments=True):
+   337	    """Parse a URL into 6 components:
+   338	    <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
+   339	    Return a 6-tuple: (scheme, netloc, path, params, query, fragment).
+   340	    Note that we don't break the components up in smaller bits
+   341	    (e.g. netloc is a single string) and we don't expand % escapes."""
+   342	    url, scheme, _coerce_result = _coerce_args(url, scheme)
+   343	    splitresult = _urlsplit(url, scheme, allow_fragments)
+   344	    scheme, netloc, url, query, fragment = splitresult
+   345	    if scheme in uses_params and ';' in url:
+   346	        url, params = _splitparams(url)
+   347	    else:
+   348	        params = ''
+   349	    result = ParseResult(scheme, netloc, url, params, query, fragment)
+   350	    return _coerce_result(result)
+   351	
+   352	
+   353	# Copied from urllib.parse.urlsplit() with
+   354	# https://github.com/python/cpython/pull/661 applied.
+   355	def _urlsplit(url, scheme='', allow_fragments=True):
+   356	    """Parse a URL into 5 components:
+   357	    <scheme>://<netloc>/<path>?<query>#<fragment>
+   358	    Return a 5-tuple: (scheme, netloc, path, query, fragment).
+   359	    Note that we don't break the components up in smaller bits
+   360	    (e.g. netloc is a single string) and we don't expand % escapes."""
+   361	    url, scheme, _coerce_result = _coerce_args(url, scheme)
+   362	    netloc = query = fragment = ''
+   363	    i = url.find(':')
+   364	    if i > 0:
+   365	        for c in url[:i]:
+   366	            if c not in scheme_chars:
+   367	                break
+   368	        else:
+   369	            scheme, url = url[:i].lower(), url[i + 1:]
+   370	
+   371	    if url[:2] == '//':
+   372	        netloc, url = _splitnetloc(url, 2)
+   373	        if (('[' in netloc and ']' not in netloc) or
+   374	                (']' in netloc and '[' not in netloc)):
+   375	            raise ValueError("Invalid IPv6 URL")
+   376	    if allow_fragments and '#' in url:
+   377	        url, fragment = url.split('#', 1)
+   378	    if '?' in url:
+   379	        url, query = url.split('?', 1)
+   380	    v = SplitResult(scheme, netloc, url, query, fragment)
+   381	    return _coerce_result(v)
+   382	
+   383	
+   384	def _url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
+   385	    # Chrome considers any URL with more than two slashes to be absolute, but
+   386	    # urlparse is not so flexible. Treat any url with three slashes as unsafe.
+   387	    if url.startswith('///'):
+   388	        return False
+   389	    try:
+   390	        url_info = _urlparse(url)
+   391	    except ValueError:  # e.g. invalid IPv6 addresses
+   392	        return False
+   393	    # Forbid URLs like http:///example.com - with a scheme, but without a hostname.
+   394	    # In that URL, example.com is not the hostname but, a path component. However,
+   395	    # Chrome will still consider example.com to be the hostname, so we must not
+   396	    # allow this syntax.
+   397	    if not url_info.netloc and url_info.scheme:
+   398	        return False
+   399	    # Forbid URLs that start with control characters. Some browsers (like
+   400	    # Chrome) ignore quite a few control characters at the start of a
+   401	    # URL and might consider the URL as scheme relative.
+   402	    if unicodedata.category(url[0])[0] == 'C':
+   403	        return False
+   404	    scheme = url_info.scheme
+   405	    # Consider URLs without a scheme (e.g. //example.com/p) to be http.
+   406	    if not url_info.scheme and url_info.netloc:
+   407	        scheme = 'http'
+   408	    valid_schemes = ['https'] if require_https else ['http', 'https']
+   409	    return ((not url_info.netloc or url_info.netloc in allowed_hosts) and
+   410	            (not scheme or scheme in valid_schemes))
+   411	
+   412	
+   413	def limited_parse_qsl(qs, keep_blank_values=False, encoding='utf-8',
+   414	                      errors='replace', fields_limit=None):
+   415	    """
+   416	    Return a list of key/value tuples parsed from query string.
+   417	
+   418	    Copied from urlparse with an additional "fields_limit" argument.
+   419	    Copyright (C) 2013 Python Software Foundation (see LICENSE.python).
+   420	
+   421	    Arguments:
+   422	
+   423	    qs: percent-encoded query string to be parsed
+   424	
+   425	    keep_blank_values: flag indicating whether blank values in
+   426	        percent-encoded queries should be treated as blank strings. A
+   427	        true value indicates that blanks should be retained as blank
+   428	        strings. The default false value indicates that blank values
+   429	        are to be ignored and treated as if they were  not included.
+   430	
+   431	    encoding and errors: specify how to decode percent-encoded sequences
+   432	        into Unicode characters, as accepted by the bytes.decode() method.
+   433	
+   434	    fields_limit: maximum number of fields parsed or an exception
+   435	        is raised. None means no limit and is the default.
+   436	    """
+   437	    if fields_limit:
+   438	        pairs = FIELDS_MATCH.split(qs, fields_limit)
+   439	        if len(pairs) > fields_limit:
+   440	            raise TooManyFieldsSent(
+   441	                'The number of GET/POST parameters exceeded '
+   442	                'settings.DATA_UPLOAD_MAX_NUMBER_FIELDS.'
+   443	            )
+   444	    else:
+   445	        pairs = FIELDS_MATCH.split(qs)
+   446	    r = []
+   447	    for name_value in pairs:
+   448	        if not name_value:
+   449	            continue
+   450	        nv = name_value.split('=', 1)
+   451	        if len(nv) != 2:
+   452	            # Handle case of a control-name with no equal sign
+   453	            if keep_blank_values:
+   454	                nv.append('')
+   455	            else:
+   456	                continue
+   457	        if nv[1] or keep_blank_values:
+   458	            name = nv[0].replace('+', ' ')
+   459	            name = u<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>
+
+THOUGHT:
+Let me search for the specific function we need to modify:
+
+### This is the 5th action:
+{"command": "cd /workspace/django__django__3.1 && grep -n \"parse_http_date\" django/utils/http.py"}
+
+OBSERVATION:
+cd /workspace/django__django__3.1 && grep -n "parse_http_date" django/utils/http.py
+158:def parse_http_date(date):
+194:def parse_http_date_safe(date):
+196:    Same as parse_http_date, but return None if the input is invalid.
+199:        return parse_http_date(date)[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Now let's look at the specific function and its surrounding context:
+
+### This is the 6th action:
+{"command": "view", "path": "/workspace/django__django__3.1/django/utils/http.py", "view_range": [158, 191]}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/django__django__3.1/django/utils/http.py:
+   158	def parse_http_date(date):
+   159	    """
+   160	    Parse a date format as specified by HTTP RFC7231 section 7.1.1.1.
+   161	
+   162	    The three formats allowed by the RFC are accepted, even if only the first
+   163	    one is still in widespread use.
+   164	
+   165	    Return an integer expressed in seconds since the epoch, in UTC.
+   166	    """
+   167	    # email.utils.parsedate() does the job for RFC1123 dates; unfortunately
+   168	    # RFC7231 makes it mandatory to support RFC850 dates too. So we roll
+   169	    # our own RFC-compliant parsing.
+   170	    for regex in RFC1123_DATE, RFC850_DATE, ASCTIME_DATE:
+   171	        m = regex.match(date)
+   172	        if m is not None:
+   173	            break
+   174	    else:
+   175	        raise ValueError("%r is not in a valid HTTP date format" % date)
+   176	    try:
+   177	        year = int(m.group('year'))
+   178	        if year < 100:
+   179	            if year < 70:
+   180	                year += 2000
+   181	            else:
+   182	                year += 1900
+   183	        month = MONTHS.index(m.group('mon').lower()) + 1
+   184	        day = int(m.group('day'))
+   185	        hour = int(m.group('hour'))
+   186	        min = int(m.group('min'))
+   187	        sec = int(m.group('sec'))
+   188	        result = datetime.datetime(year, month, day, hour, min, sec)
+   189	        return calendar.timegm(result.utctimetuple())
+   190	    except Exception as exc:
+   191	        raise ValueError("%r is not a valid date" % date) from exc
+
+THOUGHT:
+Now let's create a script to reproduce the issue:
+
+### This is the 7th action:
+{"command": "create", "path": "/workspace/test_http_date.py", "file_text": "import datetime\nimport sys\nsys.path.insert(0, '/workspace/django__django__3.1')\n\nfrom django.utils.http import parse_http_date\n\ndef test_parse_http_date():\n    # Test current behavior\n    print(\"Current year:\", datetime.datetime.now().year)\n    \n    # Test with a two-digit year that's more than 50 years in the future\n    future_date = \"Wednesday, 01-Jan-45 00:00:00 GMT\"  # This should be interpreted as 1945, not 2045\n    try:\n        timestamp = parse_http_date(future_date)\n        dt = datetime.datetime.utcfromtimestamp(timestamp)\n        print(f\"Parsed {future_date} as: {dt.year}\")\n    except ValueError as e:\n        print(f\"Error parsing {future_date}: {e}\")\n\n    # Test with a two-digit year that's less than 50 years in the future\n    recent_date = \"Wednesday, 01-Jan-25 00:00:00 GMT\"  # This should be interpreted as 2025\n    try:\n        timestamp = parse_http_date(recent_date)\n        dt = datetime.datetime.utcfromtimestamp(timestamp)\n        print(f\"Parsed {recent_date} as: {dt.year}\")\n    except ValueError as e:\n        print(f\"Error parsing {recent_date}: {e}\")\n\nif __name__ == \"__main__\":\n    test_parse_http_date()"}
+
+OBSERVATION:
+File created successfully at: /workspace/test_http_date.py
+
+THOUGHT:
+Let's run the test script to see the current behavior:
+
+### This is the 8th action:
+{"command": "python3 /workspace/test_http_date.py"}
+
+OBSERVATION:
+python3 /workspace/test_http_date.py
+Current year: 2024
+Parsed Wednesday, 01-Jan-45 00:00:00 GMT as: 2045
+Parsed Wednesday, 01-Jan-25 00:00:00 GMT as: 2025[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+The test confirms the issue described in the PR. The current implementation:
+1. For years 00-69: Adds 2000 (resulting in years 2000-2069)
+2. For years 70-99: Adds 1900 (resulting in years 1970-1999)
+
+According to RFC 7231, we should instead interpret a timestamp that appears to be more than 50 years in the future as representing the most recent year in the past that had the same last two digits.
+
+Let's modify the code to implement this requirement:
+
+### This is the 9th action:
+{"command": "str_replace", "path": "/workspace/django__django__3.1/django/utils/http.py", "old_str": "        year = int(m.group('year'))\n        if year < 100:\n            if year < 70:\n                year += 2000\n            else:\n                year += 1900", "new_str": "        year = int(m.group('year'))\n        if year < 100:\n            # RFC 7231: Recipients of a timestamp value in rfc850-date format, which uses a\n            # two-digit year, MUST interpret a timestamp that appears to be more than 50 years\n            # in the future as representing the most recent year in the past that had the\n            # same last two digits.\n            current_year = datetime.datetime.now().year\n            possible_year = current_year - (current_year % 100) + year\n            if possible_year > current_year + 50:\n                possible_year -= 100\n            year = possible_year"}
+
+OBSERVATION:
+The file /workspace/django__django__3.1/django/utils/http.py has been edited. Here's the result of running `cat -n` on a snippet of /workspace/django__django__3.1/django/utils/http.py:
+   173	            break
+   174	    else:
+   175	        raise ValueError("%r is not in a valid HTTP date format" % date)
+   176	    try:
+   177	        year = int(m.group('year'))
+   178	        if year < 100:
+   179	            # RFC 7231: Recipients of a timestamp value in rfc850-date format, which uses a
+   180	            # two-digit year, MUST interpret a timestamp that appears to be more than 50 years
+   181	            # in the future as representing the most recent year in the past that had the
+   182	            # same last two digits.
+   183	            current_year = datetime.datetime.now().year
+   184	            possible_year = current_year - (current_year % 100) + year
+   185	            if possible_year > current_year + 50:
+   186	                possible_year -= 100
+   187	            year = possible_year
+   188	        month = MONTHS.index(m.group('mon').lower()) + 1
+   189	        day = int(m.group('day'))
+   190	        hour = int(m.group('hour'))
+   191	        min = int(m.group('min'))
+Review the changes and make sure they are as expected. Edit the file again if necessary.
+
+THOUGHT:
+The changes look good. Let's run our test script again to verify the fix:
+
+### This is the 10th action:
+{"command": "python3 /workspace/test_http_date.py"}
+
+OBSERVATION:
+python3 /workspace/test_http_date.py
+Current year: 2024
+Parsed Wednesday, 01-Jan-45 00:00:00 GMT as: 2045
+Parsed Wednesday, 01-Jan-25 00:00:00 GMT as: 2025[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Let's add more test cases to verify edge cases:
+
+### This is the 11th action:
+{"command": "str_replace", "path": "/workspace/test_http_date.py", "old_str": "def test_parse_http_date():\n    # Test current behavior\n    print(\"Current year:\", datetime.datetime.now().year)\n    \n    # Test with a two-digit year that's more than 50 years in the future\n    future_date = \"Wednesday, 01-Jan-45 00:00:00 GMT\"  # This should be interpreted as 1945, not 2045\n    try:\n        timestamp = parse_http_date(future_date)\n        dt = datetime.datetime.utcfromtimestamp(timestamp)\n        print(f\"Parsed {future_date} as: {dt.year}\")\n    except ValueError as e:\n        print(f\"Error parsing {future_date}: {e}\")\n\n    # Test with a two-digit year that's less than 50 years in the future\n    recent_date = \"Wednesday, 01-Jan-25 00:00:00 GMT\"  # This should be interpreted as 2025\n    try:\n        timestamp = parse_http_date(recent_date)\n        dt = datetime.datetime.utcfromtimestamp(timestamp)\n        print(f\"Parsed {recent_date} as: {dt.year}\")\n    except ValueError as e:\n        print(f\"Error parsing {recent_date}: {e}\")", "new_str": "def test_parse_http_date():\n    current_year = datetime.datetime.now().year\n    print(\"Current year:\", current_year)\n    \n    test_cases = [\n        # Test exactly 50 years in the future (should be interpreted as past)\n        f\"Wednesday, 01-Jan-{current_year % 100 + 50} 00:00:00 GMT\",\n        \n        # Test 51 years in the future (should be interpreted as past)\n        f\"Wednesday, 01-Jan-{current_year % 100 + 51} 00:00:00 GMT\",\n        \n        # Test 49 years in the future (should be interpreted as future)\n        f\"Wednesday, 01-Jan-{current_year % 100 + 49} 00:00:00 GMT\",\n        \n        # Test current year\n        f\"Wednesday, 01-Jan-{current_year % 100} 00:00:00 GMT\",\n        \n        # Test last year\n        f\"Wednesday, 01-Jan-{(current_year - 1) % 100} 00:00:00 GMT\",\n        \n        # Test next year\n        f\"Wednesday, 01-Jan-{(current_year + 1) % 100} 00:00:00 GMT\",\n    ]\n    \n    for date_str in test_cases:\n        try:\n            timestamp = parse_http_date(date_str)\n            dt = datetime.datetime.utcfromtimestamp(timestamp)\n            print(f\"Parsed {date_str} as: {dt.year}\")\n        except ValueError as e:\n            print(f\"Error parsing {date_str}: {e}\")"}
+
+OBSERVATION:
+The file /workspace/test_http_date.py has been edited. Here's the result of running `cat -n` on a snippet of /workspace/test_http_date.py:
+     3	sys.path.insert(0, '/workspace/django__django__3.1')
+     4	
+     5	from django.utils.http import parse_http_date
+     6	
+     7	def test_parse_http_date():
+     8	    current_year = datetime.datetime.now().year
+     9	    print("Current year:", current_year)
+    10	    
+    11	    test_cases = [
+    12	        # Test exactly 50 years in the future (should be interpreted as past)
+    13	        f"Wednesday, 01-Jan-{current_year % 100 + 50} 00:00:00 GMT",
+    14	        
+    15	        # Test 51 years in the future (should be interpreted as past)
+    16	        f"Wednesday, 01-Jan-{current_year % 100 + 51} 00:00:00 GMT",
+    17	        
+    18	        # Test 49 years in the future (should be interpreted as future)
+    19	        f"Wednesday, 01-Jan-{current_year % 100 + 49} 00:00:00 GMT",
+    20	        
+    21	        # Test current year
+    22	        f"Wednesday, 01-Jan-{current_year % 100} 00:00:00 GMT",
+    23	        
+    24	        # Test last year
+    25	        f"Wednesday, 01-Jan-{(current_year - 1) % 100} 00:00:00 GMT",
+    26	        
+    27	        # Test next year
+    28	        f"Wednesday, 01-Jan-{(current_year + 1) % 100} 00:00:00 GMT",
+    29	    ]
+    30	    
+    31	    for date_str in test_cases:
+    32	        try:
+    33	            timestamp = parse_http_date(date_str)
+    34	            dt = datetime.datetime.utcfromtimestamp(timestamp)
+    35	            print(f"Parsed {date_str} as: {dt.year}")
+    36	        except ValueError as e:
+    37	            print(f"Error parsing {date_str}: {e}")
+    38	
+    39	if __name__ == "__main__":
+    40	    test_parse_http_date()
+Review the changes and make sure they are as expected. Edit the file again if necessary.
+
+THOUGHT:
+Let's run the updated test script with more edge cases:
+
+### This is the 12th action:
+{"command": "python3 /workspace/test_http_date.py"}
+
+OBSERVATION:
+python3 /workspace/test_http_date.py
+Current year: 2024
+Parsed Wednesday, 01-Jan-74 00:00:00 GMT as: 2074
+Parsed Wednesday, 01-Jan-75 00:00:00 GMT as: 1975
+Parsed Wednesday, 01-Jan-73 00:00:00 GMT as: 2073
+Parsed Wednesday, 01-Jan-24 00:00:00 GMT as: 2024
+Parsed Wednesday, 01-Jan-23 00:00:00 GMT as: 2023
+Parsed Wednesday, 01-Jan-25 00:00:00 GMT as: 2025[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/django__django__3.1 # 
+[Command finished with exit code 0]

@@ -1,0 +1,1369 @@
+role: system
+You are a helpful assistant that can interact with a computer to solve tasks.
+<IMPORTANT>
+* If user provides a path, you should NOT assume it's relative to the current working directory. Instead, you should explore the file system to find the file before working on it.
+</IMPORTANT>
+
+
+role: user
+<uploaded_files>
+/workspace/astropy__astropy__3.1
+</uploaded_files>
+I've uploaded a python code repository in the directory astropy__astropy__3.1. Consider the following PR description:
+
+<pr_description>
+float16 quantities get upgraded to float64 automatically
+When trying to create a `Quantity` from a `np.float16` (not something I actually intended to do, I was experimenting while investigating other issue) it gets upgraded automatically to `np.float64`, which is something that does not happen with other float types:
+
+```
+In [73]: np.float16(1)
+Out[73]: 1.0
+
+In [74]: (np.float16(1) * u.km)
+Out[74]: <Quantity 1. km>
+
+In [75]: (np.float16(1) * u.km).dtype
+Out[75]: dtype('float64')
+```
+
+However:
+
+```
+In [76]: (np.float32(1) * u.km).dtype
+Out[76]: dtype('float32')
+
+In [77]: (np.float64(1) * u.km).dtype
+Out[77]: dtype('float64')
+
+In [78]: (np.float128(1) * u.km).dtype
+Out[78]: dtype('float128')
+
+In [79]: (np.float(1) * u.km).dtype
+Out[79]: dtype('float64')
+
+In [80]: (np.float_(1) * u.km).dtype
+Out[80]: dtype('float64')
+```
+
+Somewhat related: #6389
+
+</pr_description>
+
+Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+Your task is to make the minimal changes to non-tests files in the /repo directory to ensure the <pr_description> is satisfied.
+Follow these steps to resolve the issue:
+1. As a first step, it might be a good idea to explore the repo to familiarize yourself with its structure.
+2. Create a script to reproduce the error and execute it with `python <filename.py>` using the BashTool, to confirm the error
+3. Edit the sourcecode of the repo to resolve the issue
+4. Rerun your reproduce script and confirm that the error is fixed!
+5. Think about edgecases and make sure your fix handles them as well
+Your thinking should be thorough and so it's fine if it's very long.
+
+
+THOUGHT:
+I'll help you implement the necessary changes to fix the issue with float16 quantities being automatically upgraded to float64. Let's follow the steps you outlined.
+
+1. First, let's explore the repository structure to understand where the relevant code might be:
+
+### This is the 1st action:
+{"command": "ls -R /workspace/astropy__astropy__3.1"}
+
+OBSERVATION:
+ls -R /workspace/astropy__astropy__3.1
+/workspace/astropy__astropy__3.1:
+CHANGES.rst	    MANIFEST.in      astropy.egg-info  examples
+CITATION	    README.rst	     astropy_helpers   licenses
+CODE_OF_CONDUCT.md  __pycache__      build	       pip-requirements
+CONTRIBUTING.md     ah_bootstrap.py  cextern	       setup.cfg
+GOVERNANCE.md	    appveyor.yml     conftest.py       setup.py
+LICENSE.rst	    astropy	     docs	       static
+
+/workspace/astropy__astropy__3.1/__pycache__:
+ah_bootstrap.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy:
+CITATION					 logger.py
+__init__.py					 modeling
+__pycache__					 nddata
+_compiler.c					 samp
+_erfa						 setup_package.py
+astropy.cfg					 stats
+compiler_version.cpython-39-x86_64-linux-gnu.so  table
+config						 tests
+conftest.py					 time
+constants					 timeseries
+convolution					 uncertainty
+coordinates					 units
+cosmology					 utils
+cython_version.py				 version.py
+extern						 visualization
+io						 wcs
+
+/workspace/astropy__astropy__3.1/astropy/__pycache__:
+setup_package.cpython-39.pyc  version.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy/_erfa:
+__init__.py	  erfa_generator.py  ufunc.c
+__pycache__	  pav2pv.c	     ufunc.c.templ
+core.py		  pv2pav.c	     ufunc.cpython-39-x86_64-linux-gnu.so
+core.py.templ	  setup_package.py
+erfa_additions.h  tests
+
+/workspace/astropy__astropy__3.1/astropy/_erfa/__pycache__:
+erfa_generator.cpython-39.pyc  setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy/_erfa/tests:
+__init__.py  test_erfa.py
+
+/workspace/astropy__astropy__3.1/astropy/config:
+__init__.py  affiliated.py  configuration.py  paths.py	tests
+
+/workspace/astropy__astropy__3.1/astropy/config/tests:
+__init__.py  data  test_configs.py
+
+/workspace/astropy__astropy__3.1/astropy/config/tests/data:
+alias.cfg	 astropy.0.3.windows.cfg  empty.cfg
+astropy.0.3.cfg  deprecated.cfg		  not_empty.cfg
+
+/workspace/astropy__astropy__3.1/astropy/constants:
+__init__.py	   cgs.py	  codata2018.py  iau2012.py  tests
+astropyconst13.py  codata2010.py  config.py	 iau2015.py  utils.py
+astropyconst20.py  codata2014.py  constant.py	 si.py
+
+/workspace/astropy__astropy__3.1/astropy/constants/tests:
+__init__.py	  test_pickle.py	 test_sciencestate.py
+test_constant.py  test_prior_version.py
+
+/workspace/astropy__astropy__3.1/astropy/convolution:
+__init__.py				  core.py	    tests
+__pycache__				  kernels.py	    utils.py
+_convolve.cpython-39-x86_64-linux-gnu.so  setup_package.py
+convolve.py				  src
+
+/workspace/astropy__astropy__3.1/astropy/convolution/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy/convolution/src:
+convolve.c  convolve.h
+
+/workspace/astropy__astropy__3.1/astropy/convolution/tests:
+__init__.py		  test_convolve_models.py  test_kernel_class.py
+test_convolve.py	  test_convolve_nddata.py  test_pickle.py
+test_convolve_fft.py	  test_convolve_speeds.py
+test_convolve_kernels.py  test_discretize.py
+
+/workspace/astropy__astropy__3.1/astropy/coordinates:
+__init__.py	    data		  name_resolve.py
+angle_lextab.py     distances.py	  orbital_elements.py
+angle_parsetab.py   earth.py		  representation.py
+angle_utilities.py  earth_orientation.py  sites.py
+angles.py	    errors.py		  sky_coordinate.py
+attributes.py	    funcs.py		  sky_coordinate_parsers.py
+baseframe.py	    jparser.py		  solar_system.py
+builtin_frames	    matching.py		  tests
+calculation.py	    matrix_utilities.py   transformations.py
+
+/workspace/astropy__astropy__3.1/astropy/coordinates/builtin_frames:
+__init__.py		     gcrs.py
+altaz.py		     hcrs.py
+baseradec.py		     icrs.py
+cirs.py			     icrs_cirs_transforms.py
+cirs_observed_transforms.py  icrs_fk5_transforms.py
+ecliptic.py		     intermediate_rotation_transforms.py
+ecliptic_transforms.py	     itrs.py
+fk4.py			     lsr.py
+fk4_fk5_transforms.py	     skyoffset.py
+fk5.py			     supergalactic.py
+galactic.py		     supergalactic_transforms.py
+galactic_transforms.py	     utils.py
+galactocentric.py
+
+/workspace/astropy__astropy__3.1/astropy/coordinates/data:
+constellation_data_roman87.dat	constellation_names.dat  sites.json
+
+/workspace/astropy__astropy__3.1/astropy/coordinates/tests:
+__init__.py			      test_matching.py
+accuracy			      test_matrix_utilities.py
+conftest.py			      test_name_resolve.py
+test_angles.py			      test_pickle.py
+test_angular_separation.py	      test_regression.py
+test_api_ape5.py		      test_representation.py
+test_arrays.py			      test_representation_arithmetic.py
+test_atc_replacements.py	      test_representation_methods.py
+test_celestial_transformations.py     test_shape_manipulation.py
+test_distance.py		      test_sites.py
+test_earth.py			      test_sky_coord.py
+test_finite_difference_velocities.py  test_sky_coord_velocities.py
+test_formatting.py		      test_skyoffset_transformations.py
+test_frames.py			      test_solar_system.py
+test_frames_with_velocity.py	      test_transformations.py
+test_funcs.py			      test_unit_representation.py
+test_iau_fullstack.py		      test_velocity_corrs.py
+test_intermediate_transformations.py  utils.py
+
+/workspace/astropy__astropy__3.1/astropy/coordinates/tests/accuracy:
+__init__.py	     test_altaz_icrs.py    test_fk4_no_e_fk5.py
+data		     test_ecliptic.py	   test_galactic_fk4.py
+generate_ref_ast.py  test_fk4_no_e_fk4.py  test_icrs_fk5.py
+
+/workspace/astropy__astropy__3.1/astropy/coordinates/tests/accuracy/data:
+fk4_no_e_fk4.csv  fk4_no_e_fk5.csv  galactic_fk4.csv  icrs_fk5.csv
+
+/workspace/astropy__astropy__3.1/astropy/cosmology:
+__init__.py    scalar_inv_efuncs.c
+core.py        scalar_inv_efuncs.cpython-39-x86_64-linux-gnu.so
+funcs.py       scalar_inv_efuncs.pyx
+parameters.py  tests
+
+/workspace/astropy__astropy__3.1/astropy/cosmology/tests:
+__init__.py  test_cosmology.py	test_pickle.py
+
+/workspace/astropy__astropy__3.1/astropy/extern:
+README.rst  __init__.py  _strptime.py  bundled	configobj  jquery  ply	six.py
+
+/workspace/astropy__astropy__3.1/astropy/extern/bundled:
+__init__.py  six.py
+
+/workspace/astropy__astropy__3.1/astropy/extern/configobj:
+__init__.py  configobj.py  validate.py
+
+/workspace/astropy__astropy__3.1/astropy/extern/jquery:
+__init__.py  data
+
+/workspace/astropy__astropy__3.1/astropy/extern/jquery/data:
+css  js
+
+/workspace/astropy__astropy__3.1/astropy/extern/jquery/data/css:
+jquery.dataTables.css
+
+/workspace/astropy__astropy__3.1/astropy/extern/jquery/data/js:
+jquery-3.1.1.js      jquery.dataTables.js
+jquery-3.1.1.min.js  jquery.dataTables.min.js
+
+/workspace/astropy__astropy__3.1/astropy/extern/ply:
+__init__.py  cpp.py  ctokens.py  lex.py  yacc.py  ygen.py
+
+/workspace/astropy__astropy__3.1/astropy/io:
+__init__.py  ascii  fits  misc	registry.py  tests  votable
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii:
+__init__.py				cparser.pyx    latex.py
+__pycache__				daophot.py     misc.py
+basic.py				docs.py        rst.py
+cds.py					ecsv.py        setup_package.py
+connect.py				fastbasic.py   sextractor.py
+core.py					fixedwidth.py  src
+cparser.c				html.py        tests
+cparser.cpython-39-x86_64-linux-gnu.so	ipac.py        ui.py
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/src:
+tokenizer.c  tokenizer.h
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests:
+__init__.py			test_compressed.py  test_ipac_definitions.py
+common.py			test_connect.py     test_read.py
+data				test_ecsv.py	    test_rst.py
+test_c_reader.py		test_fixedwidth.py  test_types.py
+test_cds_header_from_readme.py	test_html.py	    test_write.py
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data:
+apostrophe.rdb		html2.html		    short.rdb.bz2
+apostrophe.tab		ipac.dat		    short.rdb.gz
+bad.txt			ipac.dat.bz2		    short.rdb.xz
+bars_at_ends.txt	ipac.dat.xz		    short.tab
+cds			latex1.tex		    simple.txt
+cds.dat			latex1.tex.gz		    simple2.txt
+cds2.dat		latex2.tex		    simple3.txt
+cds_malformed.dat	latex3.tex		    simple4.txt
+commented_header.dat	nls1_stackinfo.dbout	    simple5.txt
+commented_header2.dat	no_data_cds.dat		    simple_csv.csv
+continuation.dat	no_data_daophot.dat	    simple_csv_missing.csv
+daophot.dat		no_data_ipac.dat	    space_delim_blank_lines.txt
+daophot.dat.gz		no_data_sextractor.dat	    space_delim_no_header.dat
+daophot2.dat		no_data_with_header.dat     space_delim_no_names.dat
+daophot3.dat		no_data_without_header.dat  test4.dat
+daophot4.dat		sextractor.dat		    test5.dat
+fill_values.txt		sextractor2.dat		    vizier
+fixed_width_2_line.txt	sextractor3.dat		    vots_spec.dat
+html.html		short.rdb		    whitespace.dat
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data/cds:
+description  glob  multi
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data/cds/description:
+ReadMe	table.dat
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data/cds/glob:
+ReadMe	lmxbrefs.dat
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data/cds/multi:
+ReadMe	lhs2065.dat  lp944-20.dat
+
+/workspace/astropy__astropy__3.1/astropy/io/ascii/tests/data/vizier:
+ReadMe	table1.dat  table5.dat
+
+/workspace/astropy__astropy__3.1/astropy/io/fits:
+__init__.py				    connect.py	    scripts
+__pycache__				    convenience.py  setup_package.py
+_utils.c				    diff.py	    src
+_utils.cpython-39-x86_64-linux-gnu.so	    file.py	    tests
+_utils.pyx				    fitsrec.py	    util.py
+card.py					    fitstime.py     verify.py
+column.py				    hdu
+compression.cpython-39-x86_64-linux-gnu.so  header.py
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/__pycache__:
+setup_package.cpython-39.pyc
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/hdu:
+__init__.py  compressed.py  hdulist.py	nonstandard.py	table.py
+base.py      groups.py	    image.py	streaming.py
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/scripts:
+__init__.py  fitscheck.py  fitsdiff.py	fitsheader.py  fitsinfo.py
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/src:
+compressionmodule.c  compressionmodule.h
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/tests:
+__init__.py		      test_diff.py	  test_hdulist.py
+cfitsio_verify.c	      test_division.py	  test_header.py
+data			      test_fitscheck.py   test_image.py
+test_checksum.py	      test_fitsdiff.py	  test_nonstandard.py
+test_compression_failures.py  test_fitsheader.py  test_structured.py
+test_connect.py		      test_fitsinfo.py	  test_table.py
+test_convenience.py	      test_fitstime.py	  test_uint.py
+test_core.py		      test_groups.py	  test_util.py
+
+/workspace/astropy__astropy__3.1/astropy/io/fits/tests/data:
+arange.fits		     compressed_image.fits  stddata.fits
+ascii.fits		     fixed-1890.fits	    table.fits
+blank.fits		     group.fits		    tb.fits
+btable.fits		     history_header.fits    tdim.fits
+chandra_time.fits	     memtest.fits	    test0.fits
+checksum.fits		     o4sp040b0_raw.fits     test1.fits
+comp.fits		     random_groups.fits     variable_length_table.fits
+compressed_float_bzero.fits  scale.fits		    zerowidth.fits
+
+/workspace/astropy__astropy__3.1/astropy/io/misc:
+__init__.py  connect.py  pandas		    tests
+asdf	     hdf5.py	 pickle_helpers.py  yaml.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf:
+__init__.py  connect.py  data  extension.py  tags  tests  types.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data:
+schemas
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas:
+astropy.org
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org:
+astropy
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy:
+coordinates  fits  table  time	units
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/coordinates:
+angle-1.0.0.yaml	  latitude-1.0.0.yaml	     skycoord-1.0.0.yaml
+earthlocation-1.0.0.yaml  longitude-1.0.0.yaml
+frames			  representation-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/coordinates/frames:
+baseframe-1.0.0.yaml	galactocentric-1.0.0.yaml
+cirs-1.0.0.yaml		gcrs-1.0.0.yaml
+fk4-1.0.0.yaml		icrs-1.0.0.yaml
+fk4noeterms-1.0.0.yaml	icrs-1.1.0.yaml
+fk5-1.0.0.yaml		itrs-1.0.0.yaml
+galactic-1.0.0.yaml	precessedgeocentric-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/fits:
+fits-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/table:
+table-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/time:
+timedelta-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/data/schemas/astropy.org/astropy/units:
+equivalency-1.0.0.yaml
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags:
+__init__.py  coordinates  fits	table  tests  time  transform  unit
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/coordinates:
+__init__.py  earthlocation.py  representation.py  tests
+angle.py     frames.py	       skycoord.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/coordinates/tests:
+__init__.py    test_earthlocation.py  test_representation.py
+test_angle.py  test_frames.py	      test_skycoord.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/fits:
+__init__.py  fits.py  tests
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/fits/tests:
+__init__.py  data  test_fits.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/fits/tests/data:
+complex.fits
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/table:
+__init__.py  table.py  tests
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/table/tests:
+__init__.py  test_table.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/tests:
+__init__.py  helpers.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/time:
+__init__.py  tests  time.py  timedelta.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/time/tests:
+__init__.py  test_time.py  test_timedelta.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/transform:
+__init__.py  compound.py    projections.py  tests
+basic.py     polynomial.py  tabular.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/transform/tests:
+__init__.py  test_transform.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/unit:
+__init__.py  equivalency.py  quantity.py  tests  unit.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tags/unit/tests:
+__init__.py  test_equivalency.py  test_quantity.py  test_unit.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/asdf/tests:
+__init__.py  test_io.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/pandas:
+__init__.py  connect.py
+
+/workspace/astropy__astropy__3.1/astropy/io/misc/tests:
+__init__.py  test_hdf5.py  test_pandas.py 
+[... Observation truncated due to length ...]
+y.o	 ut1tai.o
+apio13.o  cpv.o     fane03.o	   ltecm.o   pn00.o    rz.o	 ut1tt.o
+atci13.o  cr.o	    faom03.o	   lteqec.o  pn00a.o   s00.o	 ut1utc.o
+atciq.o   d2dtf.o   fapa03.o	   ltp.o     pn00b.o   s00a.o	 utctai.o
+atciqn.o  d2tf.o    fasa03.o	   ltpb.o    pn06.o    s00b.o	 utcut1.o
+atciqz.o  dat.o     faur03.o	   ltpecl.o  pn06a.o   s06.o	 xy06.o
+atco13.o  dtdb.o    fave03.o	   ltpequ.o  pnm00a.o  s06a.o	 xys00a.o
+atic13.o  dtf2d.o   fk52h.o	   num00a.o  pnm00b.o  s2c.o	 xys00b.o
+aticq.o   eceq06.o  fk5hip.o	   num00b.o  pnm06a.o  s2p.o	 xys06a.o
+aticqn.o  ecm06.o   fk5hz.o	   num06a.o  pnm80.o   s2pv.o	 zp.o
+atio13.o  ee00.o    fw2m.o	   numat.o   pom00.o   s2xpv.o	 zpv.o
+atioq.o   ee00a.o   fw2xy.o	   nut00a.o  ppp.o     sepp.o	 zr.o
+atoc13.o  ee00b.o   g2icrs.o	   nut00b.o  ppsp.o    seps.o
+atoi13.o  ee06a.o   gc2gd.o	   nut06a.o  pr00.o    sp00.o
+atoiq.o   eect00.o  gc2gde.o	   nut80.o   prec76.o  starpm.o
+bi00.o	  eform.o   gd2gc.o	   nutm80.o  pv2p.o    starpv.o
+bp00.o	  eo06a.o   gd2gce.o	   obl06.o   pv2s.o    sxp.o
+bp06.o	  eors.o    gmst00.o	   obl80.o   pvdpv.o   sxpv.o
+
+/workspace/astropy__astropy__3.1/build/temp.linux-x86_64-cpython-39/cextern/expat:
+lib
+
+/workspace/astropy__astropy__3.1/build/temp.linux-x86_64-cpython-39/cextern/expat/lib:
+loadlibrary.o  xmlparse.o  xmlrole.o  xmltok.o	xmltok_impl.o
+
+/workspace/astropy__astropy__3.1/build/temp.linux-x86_64-cpython-39/cextern/wcslib:
+C
+
+/workspace/astropy__astropy__3.1/build/temp.linux-x86_64-cpython-39/cextern/wcslib/C:
+cel.o  flexed  log.o  spc.o  spx.o  wcs.o     wcsfix.o	wcsprintf.o  wcsutil.o
+dis.o  lin.o   prj.o  sph.o  tab.o  wcserr.o  wcshdr.o	wcsunits.o
+
+/workspace/astropy__astropy__3.1/build/temp.linux-x86_64-cpython-39/cextern/wcslib/C/flexed:
+wcsbth.o  wcspih.o  wcsulex.o  wcsutrn.o
+
+/workspace/astropy__astropy__3.1/cextern:
+README.rst  erfa   trim_cfitsio.sh  trim_wcslib.sh
+cfitsio     expat  trim_expat.sh    wcslib
+
+/workspace/astropy__astropy__3.1/cextern/cfitsio:
+License.txt  README.txt  docs  lib  zlib
+
+/workspace/astropy__astropy__3.1/cextern/cfitsio/docs:
+changes.txt
+
+/workspace/astropy__astropy__3.1/cextern/cfitsio/lib:
+buffers.c    eval_y.c		 getcols.c     modkey.c    putcoluj.c
+cfileio.c    fits_hcompress.c	 getcolsb.c    pliocomp.c  putcoluk.c
+checksum.c   fits_hdecompress.c  getcolui.c    putcol.c    putkey.c
+drvrfile.c   fitscore.c		 getcoluj.c    putcolb.c   quantize.c
+drvrmem.c    fitsio.h		 getcoluk.c    putcold.c   region.c
+drvrnet.c    fitsio2.h		 getkey.c      putcole.c   region.h
+drvrsmem.c   getcol.c		 group.c       putcoli.c   ricecomp.c
+drvrsmem.h   getcolb.c		 group.h       putcolj.c   scalnull.c
+editcol.c    getcold.c		 grparser.c    putcolk.c   simplerng.c
+edithdu.c    getcole.c		 grparser.h    putcoll.c   simplerng.h
+eval_defs.h  getcoli.c		 histo.c       putcols.c   swapproc.c
+eval_f.c     getcolj.c		 imcompress.c  putcolsb.c  wcssub.c
+eval_l.c     getcolk.c		 iraffits.c    putcolu.c   wcsutil.c
+eval_tab.h   getcoll.c		 longnam.h     putcolui.c
+
+/workspace/astropy__astropy__3.1/cextern/cfitsio/zlib:
+adler32.c  deflate.h  inffixed.h  inftrees.h  zcompress.c    zutil.c
+crc32.c    infback.c  inflate.c   trees.c     zconf.h	     zutil.h
+crc32.h    inffast.c  inflate.h   trees.h     zlib.h
+deflate.c  inffast.h  inftrees.c  uncompr.c   zuncompress.c
+
+/workspace/astropy__astropy__3.1/cextern/erfa:
+README.rst  bp06.c    eors.c	     gc2gde.c  nut80.c	 prec76.c  starpm.c
+a2af.c	    bpn2xy.c  epb.c	     gd2gc.c   nutm80.c  pv2p.c    starpv.c
+a2tf.c	    c2i00a.c  epb2jd.c	     gd2gce.c  obl06.c	 pv2s.c    sxp.c
+ab.c	    c2i00b.c  epj.c	     gmst00.c  obl80.c	 pvdpv.c   sxpv.c
+af2a.c	    c2i06a.c  epj2jd.c	     gmst06.c  p06e.c	 pvm.c	   taitt.c
+anp.c	    c2ibpn.c  epv00.c	     gmst82.c  p2pv.c	 pvmpv.c   taiut1.c
+anpm.c	    c2ixy.c   eqec06.c	     gst00a.c  p2s.c	 pvppv.c   taiutc.c
+apcg.c	    c2ixys.c  eqeq94.c	     gst00b.c  pap.c	 pvstar.c  tcbtdb.c
+apcg13.c    c2s.c     era00.c	     gst06.c   pas.c	 pvtob.c   tcgtt.c
+apci.c	    c2t00a.c  erfa.h	     gst06a.c  pb06.c	 pvu.c	   tdbtcb.c
+apci13.c    c2t00b.c  erfaextra.h    gst94.c   pdp.c	 pvup.c    tdbtt.c
+apco.c	    c2t06a.c  erfam.h	     h2fk5.c   pfw06.c	 pvxpv.c   tf2a.c
+apco13.c    c2tcio.c  erfaversion.c  hfk5z.c   plan94.c  pxp.c	   tf2d.c
+apcs.c	    c2teqx.c  fad03.c	     icrs2g.c  pm.c	 refco.c   tr.c
+apcs13.c    c2tpe.c   fae03.c	     ir.c      pmat00.c  rm2v.c    trxp.c
+aper.c	    c2txy.c   faf03.c	     jd2cal.c  pmat06.c  rv2m.c    trxpv.c
+aper13.c    cal2jd.c  faju03.c	     jdcalf.c  pmat76.c  rx.c	   tttai.c
+apio.c	    cp.c      fal03.c	     ld.c      pmp.c	 rxp.c	   tttcg.c
+apio13.c    cpv.c     falp03.c	     ldn.c     pmpx.c	 rxpv.c    tttdb.c
+atci13.c    cr.c      fama03.c	     ldsun.c   pmsafe.c  rxr.c	   ttut1.c
+atciq.c     d2dtf.c   fame03.c	     lteceq.c  pn.c	 ry.c	   ut1tai.c
+atciqn.c    d2tf.c    fane03.c	     ltecm.c   pn00.c	 rz.c	   ut1tt.c
+atciqz.c    dat.c     faom03.c	     lteqec.c  pn00a.c	 s00.c	   ut1utc.c
+atco13.c    dtdb.c    fapa03.c	     ltp.c     pn00b.c	 s00a.c    utctai.c
+atic13.c    dtf2d.c   fasa03.c	     ltpb.c    pn06.c	 s00b.c    utcut1.c
+aticq.c     eceq06.c  faur03.c	     ltpecl.c  pn06a.c	 s06.c	   xy06.c
+aticqn.c    ecm06.c   fave03.c	     ltpequ.c  pnm00a.c  s06a.c    xys00a.c
+atio13.c    ee00.c    fk52h.c	     num00a.c  pnm00b.c  s2c.c	   xys00b.c
+atioq.c     ee00a.c   fk5hip.c	     num00b.c  pnm06a.c  s2p.c	   xys06a.c
+atoc13.c    ee00b.c   fk5hz.c	     num06a.c  pnm80.c	 s2pv.c    zp.c
+atoi13.c    ee06a.c   fw2m.c	     numat.c   pom00.c	 s2xpv.c   zpv.c
+atoiq.c     eect00.c  fw2xy.c	     nut00a.c  ppp.c	 sepp.c    zr.c
+bi00.c	    eform.c   g2icrs.c	     nut00b.c  ppsp.c	 seps.c
+bp00.c	    eo06a.c   gc2gd.c	     nut06a.c  pr00.c	 sp00.c
+
+/workspace/astropy__astropy__3.1/cextern/expat:
+AUTHORS  Changes    README.txt	    expat_config.h.in
+COPYING  README.md  expat_config.h  lib
+
+/workspace/astropy__astropy__3.1/cextern/expat/lib:
+Makefile.am  expat_external.h  libexpatw.def  winconfig.h  xmltok.h
+Makefile.in  iasciitab.h       loadlibrary.c  xmlparse.c   xmltok_impl.c
+ascii.h      internal.h        nametab.h      xmlrole.c    xmltok_impl.h
+asciitab.h   latin1tab.h       siphash.h      xmlrole.h    xmltok_ns.c
+expat.h      libexpat.def      utf8tab.h      xmltok.c
+
+/workspace/astropy__astropy__3.1/cextern/wcslib:
+C		INSTALL     configure	    wcsconfig_f77.h.in
+CHANGES		README	    configure.ac    wcsconfig_tests.h.in
+COPYING		THANKS	    flavours	    wcsconfig_utils.h.in
+COPYING.LESSER	VALIDATION  makedefs.in     wcslib.pc.in
+GNUmakefile	config	    wcsconfig.h.in
+
+/workspace/astropy__astropy__3.1/cextern/wcslib/C:
+GNUmakefile  flexed	  prj.c  spx.h	   wcserr.h   wcspih.l	   wcsunits.h
+cel.c	     getwcstab.c  prj.h  tab.c	   wcsfix.c   wcsprintf.c  wcsutil.c
+cel.h	     getwcstab.h  spc.c  tab.h	   wcsfix.h   wcsprintf.h  wcsutil.h
+dis.c	     lin.c	  spc.h  wcs.c	   wcshdr.c   wcstrig.c    wcsutrn.l
+dis.h	     lin.h	  sph.c  wcs.h	   wcshdr.h   wcstrig.h    wtbarr.h
+fitshdr.h    log.c	  sph.h  wcsbth.l  wcslib.h   wcsulex.l
+fitshdr.l    log.h	  spx.c  wcserr.c  wcsmath.h  wcsunits.c
+
+/workspace/astropy__astropy__3.1/cextern/wcslib/C/flexed:
+README	fitshdr.c  wcsbth.c  wcspih.c  wcsulex.c  wcsutrn.c
+
+/workspace/astropy__astropy__3.1/cextern/wcslib/config:
+config.guess  config.sub  install-sh
+
+/workspace/astropy__astropy__3.1/docs:
+Makefile	  cosmology		 make.bat	       testhelpers.rst
+_pkgtemplate.rst  credits.rst		 modeling	       time
+_static		  development		 nddata		       timeseries
+_templates	  getting_started.rst	 nitpick-exceptions    uncertainty
+changelog.rst	  importing_astropy.rst  overview.rst	       units
+conf.py		  index.rst		 robots.txt	       utils
+config		  install.rst		 rtd_requirements.txt  visualization
+conftest.py	  io			 samp		       warnings.rst
+constants	  known_issues.rst	 stability.rst	       wcs
+convolution	  license.rst		 stats		       whatsnew
+coordinates	  logging.rst		 table
+
+/workspace/astropy__astropy__3.1/docs/_static:
+astropy_banner.svg     astropy_logo.pdf
+astropy_banner_96.png  timer_prediction_pow10.png
+
+/workspace/astropy__astropy__3.1/docs/_templates:
+layout.html
+
+/workspace/astropy__astropy__3.1/docs/config:
+config_0_4_transition.rst  index.rst
+
+/workspace/astropy__astropy__3.1/docs/constants:
+index.rst  performance.inc.rst
+
+/workspace/astropy__astropy__3.1/docs/convolution:
+images	   kernels.rst		       performance.inc.rst
+index.rst  non_normalized_kernels.rst  using.rst
+
+/workspace/astropy__astropy__3.1/docs/convolution/images:
+astropy.png  original.png  scipy.png
+
+/workspace/astropy__astropy__3.1/docs/coordinates:
+angles.rst		index.rst	     representations.rst
+apply_space_motion.rst	inplace.rst	     skycoord.rst
+definitions.rst		matchsep.rst	     solarsystem.rst
+formatting.rst		performance.inc.rst  transforming.rst
+frames.rst		references.txt	     velocities.rst
+galactocentric.rst	remote_methods.rst
+
+/workspace/astropy__astropy__3.1/docs/cosmology:
+index.rst  performance.inc.rst
+
+/workspace/astropy__astropy__3.1/docs/development:
+astropy-package-template.rst  docguide.rst     testguide.rst
+building.rst		      docrules.rst     vision.rst
+ccython.rst		      releasing.rst    when_to_rebase.rst
+codeguide.rst		      scripts.rst      workflow
+codeguide_emacs.rst	      style-guide.rst
+
+/workspace/astropy__astropy__3.1/docs/development/workflow:
+additional_git_topics.rst	known_projects.inc
+branch_dropdown.png		links.inc
+command_history.rst		maintainer_workflow.rst
+command_history.sh		milestone.png
+command_history_with_output.sh	patches.rst
+development_workflow.rst	pull_button.png
+forking_button.png		terminal_cast.rst
+get_devel_version.rst		this_project.inc
+git_edit_workflow_examples.rst	virtual_pythons.rst
+git_install.rst			virtualenv_detail.rst
+git_links.inc			worked_example_switch_branch.png
+git_resources.rst
+
+/workspace/astropy__astropy__3.1/docs/io:
+ascii  asdf-schemas.rst  fits  misc.rst  registry.rst  unified.rst  votable
+
+/workspace/astropy__astropy__3.1/docs/io/ascii:
+base_classes.rst       fixed_width_gallery.rst	read.rst	write.rst
+extension_classes.rst  index.rst		references.txt
+fast_ascii_io.rst      performance.inc.rst	toc.txt
+
+/workspace/astropy__astropy__3.1/docs/io/fits:
+api  appendix  index.rst  performance.inc.rst  usage
+
+/workspace/astropy__astropy__3.1/docs/io/fits/api:
+cards.rst  files.rst	 hdus.rst     images.rst  verification.rst
+diff.rst   hdulists.rst  headers.rst  tables.rst
+
+/workspace/astropy__astropy__3.1/docs/io/fits/appendix:
+faq.rst  header_transition.rst	history.rst
+
+/workspace/astropy__astropy__3.1/docs/io/fits/usage:
+headers.rst  misc.rst	  table.rst	  verification.rst
+image.rst    scripts.rst  unfamiliar.rst
+
+/workspace/astropy__astropy__3.1/docs/io/votable:
+api_exceptions.rst  index.rst  performance.inc.rst  references.txt
+
+/workspace/astropy__astropy__3.1/docs/modeling:
+algorithms.rst	     fitting.rst  models.rst	  performance.inc.rst
+bounding-boxes.rst   index.rst	  new.rst	  units.rst
+compound-models.rst  links.inc	  parameters.rst
+
+/workspace/astropy__astropy__3.1/docs/nddata:
+bitmask.rst  decorator.rst  index.rst  nddata.rst	    subclassing.rst
+ccddata.rst  examples	    mixins     performance.inc.rst  utils.rst
+
+/workspace/astropy__astropy__3.1/docs/nddata/examples:
+cutout2d_tofits.py
+
+/workspace/astropy__astropy__3.1/docs/nddata/mixins:
+index.rst  ndarithmetic.rst  ndio.rst  ndslicing.rst
+
+/workspace/astropy__astropy__3.1/docs/samp:
+advanced_embed_samp_hub.rst  example_table_image.rst  references.txt
+example_clients.rst	     index.rst
+example_hub.rst		     performance.inc.rst
+
+/workspace/astropy__astropy__3.1/docs/stats:
+circ.rst  index.rst  performance.inc.rst  ripley.rst  robust.rst
+
+/workspace/astropy__astropy__3.1/docs/table:
+access_table.rst	    masking.rst		 references.txt
+construct_table.rst	    mixin_columns.rst	 table_architecture.png
+implementation_details.rst  modify_table.rst	 table_repr_html.png
+index.rst		    operations.rst	 table_row.png
+indexing.rst		    pandas.rst		 table_show_in_nb.png
+io.rst			    performance.inc.rst
+
+/workspace/astropy__astropy__3.1/docs/time:
+index.rst	     references.txt		time_scale_conversion.png
+performance.inc.rst  time_scale_conversion.odg
+
+/workspace/astropy__astropy__3.1/docs/timeseries:
+analysis.rst  data_access.rst	io.rst		 pandas.rst
+binned.csv    index.rst		lombscargle.rst  sampled.csv
+bls.rst       initializing.rst	masking.rst	 times.rst
+
+/workspace/astropy__astropy__3.1/docs/uncertainty:
+index.rst  performance.inc.rst
+
+/workspace/astropy__astropy__3.1/docs/units:
+combining_and_defining.rst     equivalencies.rst      performance.inc.rst
+constants_versions.rst	       format.rst	      quantity.rst
+conversion.rst		       index.rst	      standard_units.rst
+decomposing_and_composing.rst  logarithmic_units.rst
+
+/workspace/astropy__astropy__3.1/docs/utils:
+iers.rst  index.rst  numpy.rst
+
+/workspace/astropy__astropy__3.1/docs/visualization:
+histogram.rst  matplotlib_integration.rst  performance.inc.rst	wcsaxes
+index.rst      normalization.rst	   rgb.rst
+
+/workspace/astropy__astropy__3.1/docs/visualization/wcsaxes:
+controlling_axes.rst	initializing_axes.rst
+custom_frames.rst	overlaying_coordinate_systems.rst
+generic_transforms.rst	overlays.rst
+images_contours.rst	slicing_datacubes.rst
+index.rst		ticks_labels_grid.rst
+
+/workspace/astropy__astropy__3.1/docs/wcs:
+examples     index.rst	   performance.inc.rst	references.txt	wcsapi.rst
+history.rst  note_sip.rst  references.rst	relax.rst
+
+/workspace/astropy__astropy__3.1/docs/wcs/examples:
+from_file.py  programmatic.py
+
+/workspace/astropy__astropy__3.1/docs/whatsnew:
+0.1.rst  0.3.rst  1.0.rst  1.2.rst  2.0.rst  3.1.rst  4.0.rst
+0.2.rst  0.4.rst  1.1.rst  1.3.rst  3.0.rst  3.2.rst  index.rst
+
+/workspace/astropy__astropy__3.1/examples:
+README.txt  coordinates  io  template
+
+/workspace/astropy__astropy__3.1/examples/coordinates:
+README.txt		      plot_obs-planning.py	    rv-to-gsr.py
+plot_galactocentric-frame.py  plot_sgr-coordinate-frame.py
+
+/workspace/astropy__astropy__3.1/examples/io:
+Hs-2009-14-a-web.jpg  fits-tables.py	     skip_create-large-fits.py
+README.txt	      modify-fits-header.py  split-jpeg-to-fits.py
+create-mef.py	      plot_fits-image.py
+
+/workspace/astropy__astropy__3.1/examples/template:
+example-template.py
+
+/workspace/astropy__astropy__3.1/licenses:
+AURA_LICENSE.rst	EXPAT_LICENSE.rst   PYFITS.rst
+CONFIGOBJ_LICENSE.rst	JQUERY_LICENSE.rst  PYTHON.rst
+DATATABLES_LICENSE.rst	NUMPY_LICENSE.rst   README.rst
+ERFA.rst		PLY_LICENSE.rst     WCSLIB_LICENSE.rst
+
+/workspace/astropy__astropy__3.1/static:
+wininst_background.bmp[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Based on the repository structure, I can see that the units-related code is likely in `/workspace/astropy__astropy__3.1/astropy/units/`. Let's first create a script to reproduce the issue:
+
+### This is the 2nd action:
+{"command": "create", "path": "/workspace/reproduce_float16.py", "file_text": "import numpy as np\nfrom astropy import units as u\n\n# Test float16\nprint(\"Testing float16:\")\nx = np.float16(1)\nprint(f\"Original dtype: {x.dtype}\")\nq = x * u.km\nprint(f\"Quantity dtype: {q.dtype}\")\n\n# Test float32 for comparison\nprint(\"\\nTesting float32:\")\nx = np.float32(1)\nprint(f\"Original dtype: {x.dtype}\")\nq = x * u.km\nprint(f\"Quantity dtype: {q.dtype}\")"}
+
+OBSERVATION:
+File created successfully at: /workspace/reproduce_float16.py
+
+THOUGHT:
+Let's run this script to confirm the issue:
+
+### This is the 3rd action:
+{"command": "cd /workspace/astropy__astropy__3.1 && python /workspace/reproduce_float16.py"}
+
+OBSERVATION:
+cd /workspace/astropy__astropy__3.1 && python /workspace/reproduce_float16.py
+Testing float16:
+Original dtype: float16
+Quantity dtype: float64
+
+Testing float32:
+Original dtype: float32
+Quantity dtype: float32[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Great, we've confirmed the issue. Now let's look at the relevant code in the units module:
+
+### This is the 4th action:
+{"command": "view", "path": "/workspace/astropy__astropy__3.1/astropy/units/quantity.py"}
+
+OBSERVATION:
+Here's the result of running `cat -n` on /workspace/astropy__astropy__3.1/astropy/units/quantity.py:
+     1	# -*- coding: utf-8 -*-
+     2	# Licensed under a 3-clause BSD style license - see LICENSE.rst
+     3	"""
+     4	This module defines the `Quantity` object, which represents a number with some
+     5	associated units. `Quantity` objects support operations like ordinary numbers,
+     6	but will deal with unit conversions internally.
+     7	"""
+     8	
+     9	
+    10	# Standard library
+    11	import re
+    12	import numbers
+    13	from fractions import Fraction
+    14	import warnings
+    15	
+    16	import numpy as np
+    17	
+    18	# AstroPy
+    19	from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
+    20	                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
+    21	from .utils import is_effectively_unity
+    22	from .format.latex import Latex
+    23	from astropy.utils.compat import NUMPY_LT_1_14, NUMPY_LT_1_16, NUMPY_LT_1_17
+    24	from astropy.utils.compat.misc import override__dir__
+    25	from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+    26	from astropy.utils.misc import isiterable, InheritDocstrings
+    27	from astropy.utils.data_info import ParentDtypeInfo
+    28	from astropy import config as _config
+    29	from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
+    30	                              check_output)
+    31	
+    32	__all__ = ["Quantity", "SpecificTypeQuantity",
+    33	           "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]
+    34	
+    35	
+    36	# We don't want to run doctests in the docstrings we inherit from Numpy
+    37	__doctest_skip__ = ['Quantity.*']
+    38	
+    39	_UNIT_NOT_INITIALISED = "(Unit not initialised)"
+    40	_UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
+    41	
+    42	
+    43	class Conf(_config.ConfigNamespace):
+    44	    """
+    45	    Configuration parameters for Quantity
+    46	    """
+    47	    latex_array_threshold = _config.ConfigItem(100,
+    48	        'The maximum size an array Quantity can be before its LaTeX '
+    49	        'representation for IPython gets "summarized" (meaning only the first '
+    50	        'and last few elements are shown with "..." between). Setting this to a '
+    51	        'negative number means that the value will instead be whatever numpy '
+    52	        'gets from get_printoptions.')
+    53	
+    54	
+    55	conf = Conf()
+    56	
+    57	
+    58	class QuantityIterator:
+    59	    """
+    60	    Flat iterator object to iterate over Quantities
+    61	
+    62	    A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
+    63	    ``q``.  It allows iterating over the array as if it were a 1-D array,
+    64	    either in a for-loop or by calling its `next` method.
+    65	
+    66	    Iteration is done in C-contiguous style, with the last index varying the
+    67	    fastest. The iterator can also be indexed using basic slicing or
+    68	    advanced indexing.
+    69	
+    70	    See Also
+    71	    --------
+    72	    Quantity.flatten : Returns a flattened copy of an array.
+    73	
+    74	    Notes
+    75	    -----
+    76	    `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.  It
+    77	    is not exported by the `~astropy.units` module.  Instead of
+    78	    instantiating a `QuantityIterator` directly, use `Quantity.flat`.
+    79	    """
+    80	
+    81	    def __init__(self, q):
+    82	        self._quantity = q
+    83	        self._dataiter = q.view(np.ndarray).flat
+    84	
+    85	    def __iter__(self):
+    86	        return self
+    87	
+    88	    def __getitem__(self, indx):
+    89	        out = self._dataiter.__getitem__(indx)
+    90	        # For single elements, ndarray.flat.__getitem__ returns scalars; these
+    91	        # need a new view as a Quantity.
+    92	        if isinstance(out, type(self._quantity)):
+    93	            return out
+    94	        else:
+    95	            return self._quantity._new_view(out)
+    96	
+    97	    def __setitem__(self, index, value):
+    98	        self._dataiter[index] = self._quantity._to_own_unit(value)
+    99	
+   100	    def __next__(self):
+   101	        """
+   102	        Return the next value, or raise StopIteration.
+   103	        """
+   104	        out = next(self._dataiter)
+   105	        # ndarray.flat._dataiter returns scalars, so need a view as a Quantity.
+   106	        return self._quantity._new_view(out)
+   107	
+   108	    next = __next__
+   109	
+   110	
+   111	class QuantityInfoBase(ParentDtypeInfo):
+   112	    # This is on a base class rather than QuantityInfo directly, so that
+   113	    # it can be used for EarthLocationInfo yet make clear that that class
+   114	    # should not be considered a typical Quantity subclass by Table.
+   115	    attrs_from_parent = {'dtype', 'unit'}  # dtype and unit taken from parent
+   116	    _supports_indexing = True
+   117	
+   118	    @staticmethod
+   119	    def default_format(val):
+   120	        return '{0.value:}'.format(val)
+   121	
+   122	    @staticmethod
+   123	    def possible_string_format_functions(format_):
+   124	        """Iterate through possible string-derived format functions.
+   125	
+   126	        A string can either be a format specifier for the format built-in,
+   127	        a new-style format string, or an old-style format string.
+   128	
+   129	        This method is overridden in order to suppress printing the unit
+   130	        in each row since it is already at the top in the column header.
+   131	        """
+   132	        yield lambda format_, val: format(val.value, format_)
+   133	        yield lambda format_, val: format_.format(val.value)
+   134	        yield lambda format_, val: format_ % val.value
+   135	
+   136	
+   137	class QuantityInfo(QuantityInfoBase):
+   138	    """
+   139	    Container for meta information like name, description, format.  This is
+   140	    required when the object is used as a mixin column within a table, but can
+   141	    be used as a general way to store meta information.
+   142	    """
+   143	    _represent_as_dict_attrs = ('value', 'unit')
+   144	    _construct_from_dict_args = ['value']
+   145	    _represent_as_dict_primary_data = 'value'
+   146	
+   147	    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+   148	        """
+   149	        Return a new Quantity instance which is consistent with the
+   150	        input ``cols`` and has ``length`` rows.
+   151	
+   152	        This is intended for creating an empty column object whose elements can
+   153	        be set in-place for table operations like join or vstack.
+   154	
+   155	        Parameters
+   156	        ----------
+   157	        cols : list
+   158	            List of input columns
+   159	        length : int
+   160	            Length of the output column object
+   161	        metadata_conflicts : str ('warn'|'error'|'silent')
+   162	            How to handle metadata conflicts
+   163	        name : str
+   164	            Output column name
+   165	
+   166	        Returns
+   167	        -------
+   168	        col : Quantity (or subclass)
+   169	            Empty instance of this class consistent with ``cols``
+   170	
+   171	        """
+   172	
+   173	        # Get merged info attributes like shape, dtype, format, description, etc.
+   174	        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+   175	                                           ('meta', 'format', 'description'))
+   176	
+   177	        # Make an empty quantity using the unit of the last one.
+   178	        shape = (length,) + attrs.pop('shape')
+   179	        dtype = attrs.pop('dtype')
+   180	        # Use zeros so we do not get problems for Quantity subclasses such
+   181	        # as Longitude and Latitude, which cannot take arbitrary values.
+   182	        data = np.zeros(shape=shape, dtype=dtype)
+   183	        # Get arguments needed to reconstruct class
+   184	        map = {key: (data if key == 'value' else getattr(cols[-1], key))
+   185	               for key in self._represent_as_dict_attrs}
+   186	        map['copy'] = False
+   187	        out = self._construct_from_dict(map)
+   188	
+   189	        # Set remaining info attributes
+   190	        for attr, value in attrs.items():
+   191	            setattr(out.info, attr, value)
+   192	
+   193	        return out
+   194	
+   195	
+   196	class Quantity(np.ndarray, metaclass=InheritDocstrings):
+   197	    """A `~astropy.units.Quantity` represents a number with some associated unit.
+   198	
+   199	    See also: http://docs.astropy.org/en/stable/units/quantity.html
+   200	
+   201	    Parameters
+   202	    ----------
+   203	    value : number, `~numpy.ndarray`, `Quantity` object (sequence), str
+   204	        The numerical value of this quantity in the units given by unit.  If a
+   205	        `Quantity` or sequence of them (or any other valid object with a
+   206	        ``unit`` attribute), creates a new `Quantity` object, converting to
+   207	        `unit` units as needed.  If a string, it is converted to a number or
+   208	        `Quantity`, depending on whether a unit is present.
+   209	
+   210	    unit : `~astropy.units.UnitBase` instance, str
+   211	        An object that represents the unit associated with the input value.
+   212	        Must be an `~astropy.units.UnitBase` object or a string parseable by
+   213	        the :mod:`~astropy.units` package.
+   214	
+   215	    dtype : ~numpy.dtype, optional
+   216	        The dtype of the resulting Numpy array or scalar that will
+   217	        hold the value.  If not provided, it is determined from the input,
+   218	        except that any input that cannot represent float (integer and bool)
+   219	        is converted to float.
+   220	
+   221	    copy : bool, optional
+   222	        If `True` (default), then the value is copied.  Otherwise, a copy will
+   223	        only be made if ``__array__`` returns a copy, if value is a nested
+   224	        sequence, or if a copy is needed to satisfy an explicitly given
+   225	        ``dtype``.  (The `False` option is intended mostly for internal use,
+   226	        to speed up initialization where a copy is known to have been made.
+   227	        Use with care.)
+   228	
+   229	    order : {'C', 'F', 'A'}, optional
+   230	        Specify the order of the array.  As in `~numpy.array`.  This parameter
+   231	        is ignored if the input is a `Quantity` and ``copy=False``.
+   232	
+   233	    subok : bool, optional
+   234	        If `False` (default), the returned array will be forced to be a
+   235	        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through,
+   236	        or a subclass appropriate for the unit will be used (such as
+   237	        `~astropy.units.Dex` for ``u.dex(u.AA)``).
+   238	
+   239	    ndmin : int, optional
+   240	        Specifies the minimum number of dimensions that the resulting array
+   241	        should have.  Ones will be pre-pended to the shape as needed to meet
+   242	        this requirement.  This parameter is ignored if the input is a
+   243	        `Quantity` and ``copy=False``.
+   244	
+   245	    Raises
+   246	    ------
+   247	    TypeError
+   248	        If the value provided is not a Python numeric type.
+   249	    TypeError
+   250	        If the unit provided is not either a :class:`~astropy.units.Unit`
+   251	        object or a parseable string unit.
+   252	
+   253	    Notes
+   254	    -----
+   255	    Quantities can also be created by multiplying a number or array with a
+   256	    :class:`~astropy.units.Unit`. See http://docs.astropy.org/en/latest/units/
+   257	
+   258	    """
+   259	    # Need to set a class-level default for _equivalencies, or
+   260	    # Constants can not initialize properly
+   261	    _equivalencies = []
+   262	
+   263	    # Default unit for initialization; can be overridden by subclasses,
+   264	    # possibly to `None` to indicate there is no default unit.
+   265	    _default_unit = dimensionless_unscaled
+   266	
+   267	    # Ensures views have an undefined unit.
+   268	    _unit = None
+   269	
+   270	    __array_priority__ = 10000
+   271	
+   272	    def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
+   273	                subok=False, ndmin=0):
+   274	
+   275	        if unit is not None:
+   276	            # convert unit first, to avoid multiple string->unit conversions
+   277	            unit = Unit(unit)
+   278	            # if we allow subclasses, allow a class from the unit.
+   279	            if subok:
+   280	                qcls = getattr(unit, '_quantity_class', cls)
+   281	                if issubclass(qcls, cls):
+   282	                    cls = qcls
+   283	
+   284	        # optimize speed for Quantity with no dtype given, copy=False
+   285	        if isinstance(value, Quantity):
+   286	            if unit is not None and unit is not value.unit:
+   287	                value = value.to(unit)
+   288	                # the above already makes a copy (with float dtype)
+   289	                copy = False
+   290	
+   291	            if type(value) is not cls and not (subok and
+   292	                                               isinstance(value, cls)):
+   293	                value = value.view(cls)
+   294	
+   295	            if dtype is None:
+   296	                if not copy:
+   297	                    return value
+   298	
+   299	                if not (np.can_cast(np.float32, value.dtype) or
+   300	                        value.dtype.fields):
+   301	                    dtype = float
+   302	
+   303	            return np.array(value, dtype=dtype, copy=copy, order=order,
+   304	                            subok=True, ndmin=ndmin)
+   305	
+   306	        # Maybe str, or list/tuple of Quantity? If so, this may set value_unit.
+   307	        # To ensure array remains fast, we short-circuit it.
+   308	        value_unit = None
+   309	        if not isinstance(value, np.ndarray):
+   310	            if isinstance(value, str):
+   311	                # The first part of the regex string matches any integer/float;
+   312	                # the second parts adds possible trailing .+-, which will break
+   313	                # the float function below and ensure things like 1.2.3deg
+   314	                # will not work.
+   315	                pattern = (r'\s*[+-]?'
+   316	                           r'((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|'
+   317	                           r'([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))'
+   318	                           r'([eE][+-]?\d+)?'
+   319	                           r'[.+-]?')
+   320	
+   321	                v = re.match(pattern, value)
+   322	                unit_string = None
+   323	                try:
+   324	                    value = float(v.group())
+   325	
+   326	                except Exception:
+   327	                    raise TypeError('Cannot parse "{0}" as a {1}. It does not '
+   328	                                    'start with a number.'
+   329	                                    .format(value, cls.__name__))
+   330	
+   331	                unit_string = v.string[v.end():].strip()
+   332	                if unit_string:
+   333	                    value_unit = Unit(unit_string)
+   334	                    if unit is None:
+   335	                        unit = value_unit  # signal no conversion needed below.
+   336	
+   337	            elif (isiterable(value) and len(value) > 0 and
+   338	                  all(isinstance(v, Quantity) for v in value)):
+   339	                # Convert all quantities to the same unit.
+   340	                if unit is None:
+   341	                    unit = value[0].unit
+   342	                value = [q.to_value(unit) for q in value]
+   343	                value_unit = unit  # signal below that conversion has been done
+   344	
+   345	        if value_unit is None:
+   346	            # If the value has a `unit` attribute and if not None
+   347	            # (for Columns with uninitialized unit), treat it like a quantity.
+   348	            value_unit = getattr(value, 'unit', None)
+   349	            if value_unit is None:
+   350	                # Default to dimensionless for no (initialized) unit attribute.
+   351	                if unit is None:
+   352	                    unit = cls._default_unit
+   353	                value_unit = unit  # signal below that no conversion is needed
+   354	            else:
+   355	                try:
+   356	                    value_unit = Unit(value_unit)
+   357	                except Exception as exc:
+   358	                    raise TypeError("The unit attribute {0!r} of the input could "
+   359	                                    "not be parsed as an astropy Unit, raising "
+   360	                                    "the following exception:\n{1}"
+   361	                                    .format(value.unit, exc))
+   362	
+   363	                if unit is None:
+   364	                    unit = value_unit
+   365	                elif unit is not value_unit:
+   366	                    copy = False  # copy will be made in conversion at end
+   367	
+   368	        value = np.array(value, dtype=dtype, copy=copy, order=order,
+   369	                         subok=False, ndmin=ndmin)
+   370	
+   371	        # check that array contains numbers or long int objects
+   372	        if (value.dtype.kind in 'OSU' and
+   373	            not (value.dtype.kind == 'O' and
+   374	                 isinstance(value.item(() if value.ndim == 0 else 0),
+   375	                            numbers.Number))):
+   376	            raise TypeError("The value must be a valid Python or "
+   377	                            "Numpy numeric type.")
+   378	
+   379	        # by default, cast any integer, boolean, etc., to float
+   380	        if dtype is None and (not (np.can_cast(np.float32, value.dtype)
+   381	                                   or value.dtype.fields)
+   382	                              or value.dtype.kind == 'O'):
+   383	            value = value.astype(float)
+   384	
+   385	        value = value.view(cls)
+   386	        value._set_unit(value_unit)
+   387	        if unit is value_unit:
+   388	            return value
+   389	        else:
+   390	            # here we had non-Quantity input that had a "unit" attribute
+   391	            # with a unit different from the desired one.  So, convert.
+   392	            return value.to(unit)
+   393	
+   394	    def __array_finalize__(self, obj):
+   395	        # If we're a new object or viewing an ndarray, nothing has to be done.
+   396	        if obj is None or obj.__class__ is np.ndarray:
+   397	            return
+   398	
+   399	        # If our unit is not set and obj has a valid one, use it.
+   400	        if self._unit is None:
+   401	            unit = getattr(obj, '_unit', None)
+   402	            if unit is not None:
+   403	                self._set_unit(unit)
+   404	
+   405	        # Copy info if the original ha<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>
+
+THOUGHT:
+Let's search for relevant code related to dtype handling:
+
+### This is the 5th action:
+{"command": "cd /workspace/astropy__astropy__3.1 && grep -n \"dtype\" astropy/units/quantity.py"}
+
+OBSERVATION:
+cd /workspace/astropy__astropy__3.1 && grep -n "dtype" astropy/units/quantity.py
+115:    attrs_from_parent = {'dtype', 'unit'}  # dtype and unit taken from parent
+173:        # Get merged info attributes like shape, dtype, format, description, etc.
+179:        dtype = attrs.pop('dtype')
+182:        data = np.zeros(shape=shape, dtype=dtype)
+215:    dtype : ~numpy.dtype, optional
+216:        The dtype of the resulting Numpy array or scalar that will
+225:        ``dtype``.  (The `False` option is intended mostly for internal use,
+272:    def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
+284:        # optimize speed for Quantity with no dtype given, copy=False
+288:                # the above already makes a copy (with float dtype)
+295:            if dtype is None:
+299:                if not (np.can_cast(np.float32, value.dtype) or
+300:                        value.dtype.fields):
+301:                    dtype = float
+303:            return np.array(value, dtype=dtype, copy=copy, order=order,
+368:        value = np.array(value, dtype=dtype, copy=copy, order=order,
+372:        if (value.dtype.kind in 'OSU' and
+373:            not (value.dtype.kind == 'O' and
+380:        if dtype is None and (not (np.can_cast(np.float32, value.dtype)
+381:                                   or value.dtype.fields)
+382:                              or value.dtype.kind == 'O'):
+725:        return value if self.shape else (value[()] if self.dtype.fields
+848:            if self.dtype.kind == 'V':
+859:            if self.dtype.kind == 'V':
+1209:                    style=(float_formatter if self.dtype.kind == 'f'
+1210:                           else complex_formatter if self.dtype.kind == 'c'
+1370:            if not np.can_cast(_value.dtype, self.dtype):
+1371:                self_dtype_array = np.array(_value, self.dtype)
+1372:                if not np.all(np.logical_or(self_dtype_array == _value,
+1512:    def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
+1513:        return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
+1516:    def var(self, axis=None, dtype=None, out=None, ddof=0):
+1517:        return self._wrap_function(np.var, axis, dtype,
+1520:    def std(self, axis=None, dtype=None, out=None, ddof=0):
+1521:        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof)
+1523:    def mean(self, axis=None, dtype=None, out=None):
+1524:        return self._wrap_function(np.mean, axis, dtype, out=out)[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Looking at the code, I can see that the issue is in the `__new__` method of the `Quantity` class. The key part is around line 380-383:
+
+```python
+if dtype is None and (not (np.can_cast(np.float32, value.dtype)
+                          or value.dtype.fields)
+                     or value.dtype.kind == 'O'):
+    value = value.astype(float)
+```
+
+The issue is that `np.can_cast(np.float32, value.dtype)` returns `False` for `float16` since float32 cannot be cast to float16 without potential loss of precision. This causes float16 values to be automatically converted to float (float64).
+
+Let's modify this code to handle float16 properly. We should change the condition to check if the dtype is already a floating point type:
+
+### This is the 6th action:
+{"command": "str_replace", "path": "/workspace/astropy__astropy__3.1/astropy/units/quantity.py", "old_str": "        # by default, cast any integer, boolean, etc., to float\n        if dtype is None and (not (np.can_cast(np.float32, value.dtype)\n                                   or value.dtype.fields)\n                              or value.dtype.kind == 'O'):\n            value = value.astype(float)", "new_str": "        # by default, cast any integer, boolean, etc., to float\n        # but preserve existing float types including float16\n        if dtype is None and (value.dtype.kind not in 'fc'\n                             or value.dtype.kind == 'O'):\n            value = value.astype(float)"}
+
+OBSERVATION:
+The file /workspace/astropy__astropy__3.1/astropy/units/quantity.py has been edited. Here's the result of running `cat -n` on a snippet of /workspace/astropy__astropy__3.1/astropy/units/quantity.py:
+   375	                            numbers.Number))):
+   376	            raise TypeError("The value must be a valid Python or "
+   377	                            "Numpy numeric type.")
+   378	
+   379	        # by default, cast any integer, boolean, etc., to float
+   380	        # but preserve existing float types including float16
+   381	        if dtype is None and (value.dtype.kind not in 'fc'
+   382	                             or value.dtype.kind == 'O'):
+   383	            value = value.astype(float)
+   384	
+   385	        value = value.view(cls)
+   386	        value._set_unit(value_unit)
+   387	        if unit is value_unit:
+Review the changes and make sure they are as expected. Edit the file again if necessary.
+
+THOUGHT:
+The changes look good. Let's explain what we changed:
+
+1. The original code used `np.can_cast(np.float32, value.dtype)` to check if the input type needed to be converted to float. This caused float16 to be converted because float32 cannot be cast to float16.
+
+2. We replaced this with a simpler check that preserves any existing floating point or complex types (`value.dtype.kind not in 'fc'`). This means:
+   - 'f': floating point types (float16, float32, float64, etc.)
+   - 'c': complex types
+   - Any other type (integers, booleans, etc.) will be converted to float
+
+Now let's test our changes by running the reproduce script again:
+
+### This is the 7th action:
+{"command": "cd /workspace/astropy__astropy__3.1 && python /workspace/reproduce_float16.py"}
+
+OBSERVATION:
+cd /workspace/astropy__astropy__3.1 && python /workspace/reproduce_float16.py
+Testing float16:
+Original dtype: float16
+Quantity dtype: float16
+
+Testing float32:
+Original dtype: float32
+Quantity dtype: float32[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__3.1 # 
+[Command finished with exit code 0]
+
+THOUGHT:
+Great! The fix works as expected. Now float16 quantities preserve their dtype instead of being automatically upgraded to float64.
+
+Let's also test some edge cases to make sure our fix doesn't break anything:
+
+### This is the 8th action:
+{"command": "create", "path": "/workspace/test_edge_cases.py", "file_text": "import numpy as np\nfrom astropy import units as u\n\n# Test all float types\nprint(\"Testing all float types:\")\nfor dtype in [np.float16, np.float32, np.float64]:\n    x = dtype(1.5)\n    q = x * u.km\n    print(f\"{dtype.__name__}: {x.dtype} -> {q.dtype}\")\n\n# Test integer types (should convert to float)\nprint(\"\\nTesting integer types:\")\nfor dtype in [np.int8, np.int16, np.int32, np.int64]:\n    x = dtype(1)\n    q = x * u.km\n    print(f\"{dtype.__name__}: {x.dtype} -> {q.dtype}\")\n\n# Test boolean (should convert to float)\nprint(\"\\nTesting boolean:\")\nx = np.bool_(True)\nq = x * u.km\nprint(f\"bool: {x.dtype} -> {q.dtype}\")\n\n# Test complex types\nprint(\"\\nTesting complex:\")\nx = np.complex64(1+2j)\nq = x * u.km\nprint(f\"complex64: {x.dtype} -> {q.dtype}\")\n\n# Test array operations\nprint(\"\\nTesting array operations:\")\nx = np.array([1, 2, 3], dtype=np.float16)\nq = x * u.km\nprint(f\"float16 array: {x.dtype} -> {q.dtype}\")\n\n# Test arithmetic operations\nprint(\"\\nTesting arithmetic:\")\nq1 = np.float16(2) * u.km\nq2 = np.float16(3) * u.km\nq3 = q1 + q2\nprint(f\"Addition: {q1.dtype} + {q2.dtype} -> {q3.dtype}\")\nq4 = q1 * q2\nprint(f\"Multiplication: {q1.dtype} * {q2.dtype} -> {q4.dtype}\")"}
+
+OBSERVATION:
+File created successfully at: /workspace/test_edge_cases.py
+
+### This is the 9th action:
+{"command": "cd /workspace/astropy__astropy__3.1 && python /workspace/test_edge_cases.py"}
+
+OBSERVATION:
+cd /workspace/astropy__astropy__3.1 && python /workspace/test_edge_cases.py
+Testing all float types:
+float16: float16 -> float16
+float32: float32 -> float32
+float64: float64 -> float64
+
+Testing integer types:
+int8: int8 -> float64
+int16: int16 -> float64
+int32: int32 -> float64
+int64: int64 -> float64
+
+Testing boolean:
+bool: bool -> float64
+
+Testing complex:
+complex64: complex64 -> complex64
+
+Testing array operations:
+float16 array: float16 -> float16
+
+Testing arithmetic:
+Addition: float16 + float16 -> float64
+Multiplication: float16 * float16 -> float64[Python Interpreter: /opt/miniconda3/envs/testbed/bin/python]
+root@openhands-workspace:/workspace/astropy__astropy__3.1 # 
+[Command finished with exit code 0]

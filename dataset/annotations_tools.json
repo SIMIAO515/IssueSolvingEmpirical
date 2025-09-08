@@ -1,0 +1,2196 @@
+{
+  "astropy__astropy-13236": {
+    "6": [
+      {
+        "action_index": 6,
+        "category": "issue_interference",
+        "reason": "The deprecation plan has two phases: adding a `FutureWarning` now and removing the code in 5.2. The agent implemented phase one, but the ground truth reflects phase two, so the outputs differ.",
+        "id": "5bcacfe7-a13a-4c72-9c21-b2117a332314"
+      }
+    ]
+  },
+  "astropy__astropy-13398": {
+    "2": [
+      {
+        "id": "fd66660b-ef65-4aa4-80e2-a929c4378f9c",
+        "action_index": 2,
+        "category": "issue_misleading",
+        "reason": "The'basic concept' was considered a complete solution. This directly led to incomplete localization, as the agency never investigated what other changes were needed to fully support the new functionality, such as modifying the \"ITRS\" frame definition itself."
+      }
+    ]
+  },
+  "astropy__astropy-13977": {
+    "8": [
+      {
+        "id": "e3cfe4b0-d7ba-4ef7-aaa7-078395b1391c",
+        "action_index": 8,
+        "category": "control_flow",
+        "reason": "The reason the Agent falls into a 'no-progress treadmill' loop is that it adopted the wrong repair strategy from the beginning, failing to understand the correct control flow for handling such issues. • Feature: The Agent has an improper understanding of code control flow, especially regarding the handling mechanism of NotImplemented. • Error Segment: The Agent's repair approach focuses on preventing the occurrence of TypeError."
+      }
+    ],
+    "7": [
+      {
+        "id": "2031feab-12cb-48bc-baf8-d6cc1e91ce59",
+        "action_index": 7,
+        "category": "non_progressive_iteration",
+        "reason": "After the initial fix, the Agent successfully converted the ValueError into a TypeError. However, from the 8th to the 42nd interaction, the Agent fell into a long and ineffective repair loop. It repeatedly added checks for NotImplemented in multiple files such as core.py, quantity.py, utils.py, and helpers.py, but during each verification, it almost always encountered the same error: TypeError: unsupported operand type(s) for *: 'float' and 'NotImplementedType'."
+      }
+    ]
+  },
+  "astropy__astropy-14182": {
+    "10": [
+      {
+        "id": "a2294373-6390-4b34-a320-4b8fc7baa9f6",
+        "action_index": 10,
+        "category": "algorithmic_implementation",
+        "reason": "According to the ReStructuredText table specification described in the issue, the table should also have a separator line at the end as a footer. In the Agent's implementation logic, regardless of the if or else branch, it only generates the separator line between the header and the data body, completely omitting the final footer separator line. This causes the generated table to not conform to the expected format."
+      }
+    ],
+    "3": [
+      {
+        "id": "874a4cfd-f860-4775-8112-b149b1872d57",
+        "action_index": 3,
+        "category": "component_coordination",
+        "reason": "The Agent failed to realize that modifying `header_rows` would affect the starting position of the data rows (`data.start_line`). As a result, it missed the necessary coordinated modifications to the `SimpleRSTData` class and the `read` method. This constitutes a serious and incomplete fix."
+      }
+    ],
+    "20": [
+      {
+        "id": "b6ebca4e-658c-4807-bab6-bfd86a363257",
+        "action_index": 20,
+        "category": "reproduction_output_misreading",
+        "reason": "In the final step, the Agent failed to recognize that its generated test output still contained formatting issues (such as extra blank lines) and incorrectly determined the fix as successful."
+      }
+    ]
+  },
+  "astropy__astropy-14369": {
+    "16": [
+      {
+        "id": "34362c98-bee6-4129-822c-c94342513b4f",
+        "action_index": 16,
+        "category": "specific_case_overfitting",
+        "reason": "The Agent did not fix the root cause in the parser's grammar (the fundamental truth-value solution changed the associativity of the division rule), but instead implemented a workaround. It preprocesses the input string, converting expressions like 'a/b/c' into 'a/(b.c)', after which the existing flawed grammar can handle it correctly."
+      }
+    ],
+    "5": [
+      {
+        "id": "7c4adea7-5786-465b-8bdb-fce7d903f403",
+        "action_index": 5,
+        "category": "insufficient_domain_knowledge",
+        "reason": "`a/b/c` should be parsed as `(a/b)/c` (left-associative), but the issue indicates that it was parsed incorrectly. In parser generators like PLY or YACC, operator associativity is usually defined by the recursion style of grammar rules. To achieve left associativity, left-recursive rules (such as `result : result OP term`) are required. However, in multiple attempts, the Agent either used right recursion or created more complex logic that tried to manually manage operation order. This indicates that the Agent lacks domain knowledge on how to correctly define operator associativity using formal grammar. It failed to realize that simply modifying the grammar rule from `division_of_units : unit_expression DIVISION combined_units` to a left-recursive form `division_of_units : combined_units DIVISION unit_expression` would fundamentally solve the problem — which is in fact the core of the final correct fix."
+      }
+    ]
+  },
+  "astropy__astropy-7606": {
+    "4": [
+      {
+        "id": "95a0dbbc-a8cf-431d-a988-077421a14455",
+        "action_index": 4,
+        "category": "recurring_pattern",
+        "reason": "The Agent correctly identified the issue in `UnrecognizedUnit`, but failed to recognize that the same logical pattern and potential error also existed in the `UnitBase` superclass."
+      },
+      {
+        "id": "95e547bc-f5e0-48fa-bd53-e9fa6da4d831",
+        "action_index": 4,
+        "category": "evasive_repair",
+        "reason": "The core problem with this fix is that it merely added a defensive `if` check for the specific case mentioned in the issue where `other` is `None`, in order to bypass the `TypeError`. This approach does not address the fundamental flaw in the design of the `__eq__` method: namely, it wrongly assumes that all non-`None` inputs for `other` can be successfully converted through `Unit(other, parse_strict='silent')`, without considering other unconvertible types (for example, a plain object instance). The correct fix uses a `try...except` block to catch all exceptions (`ValueError`, `UnitsError`, `TypeError`) that might arise during the `Unit()` conversion, and returns `NotImplemented` when an exception is caught. This is a more general and robust implementation, as it follows Python's specification that when comparison with a given type is not possible, `NotImplemented` should be returned, allowing Python to attempt the reverse operation (`other.__eq__(self)`). Therefore, the Agent’s fix is an evasive fix, since it does not address the root cause (insufficient robustness for comparisons with arbitrary types), but instead avoids the specific crash scenario exposed in the issue with a narrow conditional check."
+      }
+    ]
+  },
+  "astropy__astropy-8872": {
+    "5": [
+      {
+        "id": "53f9aaf1-f228-4c97-b241-98de4e51358a",
+        "action_index": 5,
+        "category": "recurring_pattern",
+        "reason": "The Agent correctly identified one of the two locations in `astropy/units/quantity.py` that required fixing. In Action 6, it modified the logic around line 380 that incorrectly handled the `float16` type. However, the ground truth patch shows that a nearly identical logic block around line 299 also contained the same flaw and needed to be fixed."
+      }
+    ]
+  },
+  "django__django-10999": {
+    "4": [
+      {
+        "id": "f39785c7-2bfa-451c-af36-07c55857c3c9",
+        "action_index": 4,
+        "category": "issue_interference",
+        "reason": "The problem description provides a complete and valid fix. This directly affects the agent's implementation, causing it to adopt the provided solution rather than independently developing one. The agent's final patch works for the tested cases but differs significantly from the ground truth patch. This indicates that the content of the problem interfered with the agent's process, leading it to use a non-canonical solution."
+      }
+    ]
+  },
+  "django__django-10880": {
+    "9": [
+      {
+        "id": "f74bc488-0e47-472e-9d86-cdfdbf2b0b15",
+        "action_index": 9,
+        "category": "data_processing_errors",
+        "reason": "The agent's suggested fix is 'template = '%(function)s(%(distinct)s %(expressions)s)'.replace(' ', '')'. While adding a space after '%(distinct)s' is a valid approach, the agent included '.replace(' ', '')' based on flawed reasoning. In its thought process, it claimed this was to 'handle the case where distinct is empty (to avoid double spaces)'. However, if the 'distinct' parameter is an empty string, the formatted string would contain a single leading space inside the parentheses, not double spaces."
+      }
+    ]
+  },
+  "django__django-11087": {
+    "35": [
+      {
+        "id": "22fbfec6-10f8-4c41-b6ae-ed4e2466e7e8",
+        "action_index": 35,
+        "category": "verification_weakening",
+        "reason": "It replaced the call to 'collector.related' with a simple 'Child.objects.filter(parent=parent)'. This new test no longer verifies the logic in the 'related' object's method, effectively weakening the validation and making it unrelated to the code being fixed."
+      }
+    ],
+    "24": [
+      {
+        "id": "6550d6fb-81c2-4633-9ed9-193306c5e6d8",
+        "action_index": 24,
+        "category": "insufficient_domain_knowledge",
+        "reason": "During the iterations of fixing 'delete.py', the agent showed a lack of understanding of Django ORM's internal data structures. It incorrectly attempted to access attributes on the 'related' object, looping over 'related.field.null', 'related.field.name', 'related.name', and 'related.attname'. These attempts resulted in 'AttributeError' and 'FieldError', showing that the agent did not know the correct API for the 'ManyToOneRel' and 'ForeignKey' objects it was working with."
+      }
+    ],
+    "16": [
+      {
+        "id": "e2c0884c-c509-4024-961c-c8823ef5e874",
+        "action_index": 16,
+        "category": "reproduction_script_failure",
+        "reason": "The agent repeatedly failed when attempting to set up the test environment, exposing its lack of ability in handling test dependencies and configurations for complex frameworks such as Django."
+      }
+    ],
+    "26": [
+      {
+        "id": "5a5a42b8-33b6-4618-b08a-020ff50c0e1d",
+        "action_index": 26,
+        "category": "non_progressive_iteration",
+        "reason": "When faced with repeated AttributeErrors, the agent failed to step back and reanalyze the problem. Instead, it fell into a 'trial-and-error' loop, making small, theory-less modifications to the same line of code over and over."
+      }
+    ]
+  },
+  "django__django-11138": {
+    "1": [
+      {
+        "id": "48aa391a-bd89-4e2e-bf91-3f9454abd15a",
+        "action_index": 1,
+        "category": "referred_code_location",
+        "reason": "The issue description provided a direct link to the mysql/operations.py file. The agent jumped straight to this file and applied the fix only there, ignoring the broader context in the description text (\"on MySQL, SQLite, and Oracle\"), which caused it to fail to address the problem comprehensively."
+      }
+    ],
+    "8": [
+      {
+        "id": "d218597a-3f5a-4103-9e00-81f752793dff",
+        "action_index": 8,
+        "category": "verification_abandonment",
+        "reason": "After repeatedly failing to set up the test environment (operations 4–9), the agent explicitly gave up on validation."
+      }
+    ],
+    "5": [
+      {
+        "id": "83194bd4-a3d0-472b-a34d-473f37d22724",
+        "action_index": 5,
+        "category": "recurring_pattern",
+        "reason": "The agent's fix was limited to django/db/backends/mysql/operations.py, ignoring an almost identical issue in django/db/backends/oracle/operations.py, where the source timezone was hardcoded as '0:00' (UTC)."
+      }
+    ]
+  },
+  "django__django-11141": {
+    "5": [
+      {
+        "id": "64a4df82-9739-45d4-aa78-3252d541de53",
+        "action_index": 5,
+        "category": "boundary_handling",
+        "reason": "The agent's solution unconditionally added the app to 'migrations' as long as a 'migrations' directory existed. This would cause incorrect behavior for apps where the migrations directory is empty (but valid)."
+      }
+    ]
+  },
+  "django__django-11206": {
+    "9": [
+      {
+        "id": "51a0eeeb-7364-4bda-9155-84609047727d",
+        "action_index": 9,
+        "category": "evasive_repair",
+        "reason": "The core issue in this code lies in the return statement. When the number is very small (exponent < -decimal_pos), the agent's fix directly constructs and returns a formatted string (e.g., '0.00'). While this strategy addresses the scientific notation issue observed in the test cases, it is an 'avoidance-style' fix. By exiting the function early, it bypasses all subsequent standard number formatting processes, such as handling grouping and thousand_sep parameters. If a user calls this function with thousand grouping required, this fix would produce incorrect results because it skips the code responsible for that functionality."
+      }
+    ]
+  },
+  "django__django-11239": {
+    "6": [
+      {
+        "id": "6981d7bf-5c3b-4b95-aa7b-7fea01d1922d",
+        "action_index": 6,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent incorrectly assumed that the 'psql' command-line tool accepts SSL parameters as flags, such as '--sslmode=' or '--sslcert='. The correct way to pass these settings to 'psql' is through environment variables (e.g., 'PGSSLMODE', 'PGSSLCERT'). The agent essentially invented a non-existent command-line interface for the external tool ('psql'), revealing a lack of domain knowledge about how to configure it."
+      }
+    ],
+    "7": [
+      {
+        "id": "76f5137e-24c7-4f33-9759-a7a78d282afa",
+        "action_index": 7,
+        "category": "verification_weakening",
+        "reason": "After encountering an error due to 'psql' not being installed, the agent modified its validation script. The new script no longer attempted to execute the command but instead mocked the 'subprocess.run' call, simply printing the argument list. This changed the validation target from 'Does the command work correctly with the new options?' to 'Did I successfully add the string to the list?'. The test no longer verified the actual functionality required by the issue."
+      }
+    ]
+  },
+  "django__django-11433": {
+    "16": [
+      {
+        "id": "5331d44f-2711-4e9c-9d1e-0c3d516682a7",
+        "action_index": 16,
+        "category": "control_flow",
+        "reason": "The agent correctly identified the location of the fix but implemented the wrong logical condition. The agent's suggested fix was 'f.name not in cleaned_data'. The ground truth fix was 'cleaned_data.get(form[name].field.empty_value)'. The agent's condition was an oversimplification that could not correctly handle cases where the field appeared in 'cleaned_data' but had an empty value (such as None or '')."
+      },
+      {
+        "id": "7389014d-4a10-4e89-aad1-aeb6b54b1bd9",
+        "action_index": 16,
+        "category": "verification_abandonment",
+        "reason": "After multiple failed attempts to create a working replication script, the agent explicitly gave up on validation. It stated, 'I apologize for the confusion in the test script. Let me directly explain the problem and the fix, and then proceed with the implementation without test validation.'"
+      }
+    ]
+  },
+  "django__django-11490": {
+    "18": [
+      {
+        "id": "c9b762b2-74a8-4d6b-ae31-b218ccc250e7",
+        "action_index": 18,
+        "category": "non_progressive_iteration",
+        "reason": "It reverted to a previously unsuccessful fix attempt. In the subsequent operations (29, 31), it failed to identify the root cause of shared mutable state across loop iterations, and instead kept adding more complex but ineffective patches to manually manage the query state, never converging on the simpler and correct solution of cloning the query object."
+      }
+    ],
+    "4": [
+      {
+        "id": "85277b2c-f90d-40ce-9594-9e249dcc80d2",
+        "action_index": 4,
+        "category": "data_processing_errors",
+        "reason": "The agent did not correctly understand the lifecycle and scope of the compiler.query object. In combined queries (such as union), the query objects in self.query.combined_queries are reused. When the agent first executed values_list('name', 'order'), its fix logic directly modified the state of the subquery's compiler.query. When values_list('order') was executed the second time, the same modified subquery object was reused, causing state pollution and leading to errors."
+      }
+    ],
+    "25": [
+      {
+        "id": "6035b5ef-2097-49bb-8369-5894ada28483",
+        "action_index": 25,
+        "category": "insufficient_domain_knowledge",
+        "reason": "In subsequent fix attempts, the agent tried to directly assign values to attributes of the query object, which exposed its lack of understanding of Django's internal query object mechanisms. Django query objects should typically be manipulated through their provided methods (such as .clone(), .set_values()) rather than by directly modifying internal attributes."
+      }
+    ]
+  },
+  "django__django-11734": {
+    "15": [
+      {
+        "id": "cae8cb9b-0766-46f9-9dda-75bf695abf6d",
+        "action_index": 15,
+        "category": "reproduction_output_misreading",
+        "reason": "In operation 16, the agent re-ran the script, observed exactly the same error output as before the patch, but mistakenly concluded that the fix was successful and committed the change."
+      }
+    ],
+    "5": [
+      {
+        "id": "2b07ca94-21aa-4097-b1b8-16d78614afa2",
+        "action_index": 5,
+        "category": "referred_code_location",
+        "reason": "It did not investigate how the OuterRef object is used and handled throughout the query-building process. The actual bug trigger point and fix lie in other modules, such as django/db/models/sql/query.py (handling exclude logic) and django/db/models/fields/related_lookups.py (handling field value preprocessing). The agent merely identified the 'victim' of the issue, without finding the 'culprit'."
+      }
+    ],
+    "14": [
+      {
+        "id": "0ea82c2b-2cd2-44d4-ba05-e9b8bec7c289",
+        "action_index": 14,
+        "category": "insufficient_domain_knowledge",
+        "reason": "Django's query compiler has very complex alias generation and management logic, especially when handling subqueries and exclude operations. The agent's fix attempted to bypass this system with manual and unstable alias lookups, which broke the ORM's design and failed to solve the problem. The correct fix (as shown in the ground truth code) is to handle OuterRef specially at an earlier stage of query construction (such as in the split_exclude method of sql/query.py), rather than making guesses in as_sql during the final SQL generation."
+      }
+    ]
+  },
+  "django__django-11749": {
+    "23": [
+      {
+        "id": "8983b7b2-0cd1-4100-b4d3-0bf698d0914c",
+        "action_index": 23,
+        "category": "verification_weakening",
+        "reason": "In action 22, the agent's flawed fix introduced a new error when the validation script passed a boolean flag ('force_color=False'). Instead of modifying its implementation to handle this common case, the agent altered its validation script to completely remove the 'force_color' argument. This is a clear example of weakening the test case to make a broken fix appear to work."
+      }
+    ],
+    "8": [
+      {
+        "id": "622f53f8-0ba0-4c60-9f91-1e15d009b838",
+        "action_index": 8,
+        "category": "algorithmic_implementation",
+        "reason": "The agent failed to design the correct algorithm to identify parameters belonging to 'required mutually exclusive groups'. The correct fix requires first iterating over _mutually_exclusive_groups in the parser, finding all required groups, and collecting all parameter options within them. Then, when processing the **options dictionary, check whether the provided arguments exist in this set. The agent's multiple attempts revolved around checking the opt.container.required attribute of a single option, which is logically incomplete because it does not make a holistic judgment at the group level, leading to a fundamental algorithmic error. This approach tried to solve the problem by checking whether the container of a single option was required, instead of, as in the correct fix, first aggregating all relevant options from parser._mutually_exclusive_groups."
+      }
+    ],
+    "9": [
+      {
+        "id": "6e269df1-a1d7-4d15-9d32-6a75e6d46c3f",
+        "action_index": 9,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent lacked sufficient understanding of the internal structure of Django's CommandParser (based on Python's argparse). The correct fix made use of the parser._mutually_exclusive_groups internal attribute, which directly stores the definitions of all mutually exclusive groups. The agent failed to discover or leverage this key data structure and instead tried to infer whether a group was required by checking each parameter's .container attribute. This 'roundabout' approach highlights its lack of domain knowledge, leading to an inability to implement a concise and correct fix."
+      }
+    ],
+    "13": [
+      {
+        "id": "8e2df8f9-7710-490b-8f99-be18fe674ea7",
+        "action_index": 13,
+        "category": "non_progressive_iteration",
+        "reason": "Across multiple fix attempts (especially between steps 14 and 22), the agent repeatedly modified the same piece of logic but never escaped the flawed framework of 'checking opt.container'. Its changes were only minor adjustments to this incorrect approach (such as introducing a satisfied_groups set or altering the loop logic), without fundamentally changing its algorithmic strategy. This repeated fine-tuning in the wrong direction prevented it from making substantive progress."
+      }
+    ]
+  },
+  "django__django-11848": {
+    "4": [
+      {
+        "id": "b7955b23-5d0c-499d-8c0d-858ca51ce1aa",
+        "action_index": 4,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent used 'datetime.datetime.now().year'. The HTTP standard specifies dates in GMT/UTC. Using the server's local time ('now()') instead of UTC time ('utcnow()', as used in the ground truth) is incorrect and can lead to errors in date calculations depending on the server's timezone. This demonstrates a lack of domain knowledge regarding the HTTP specification."
+      },
+      {
+        "id": "50f49c2b-a329-42e9-bbe9-9e21f4ad2b17",
+        "action_index": 4,
+        "category": "algorithmic_implementation",
+        "reason": "The agent implemented a flawed algorithm to determine the correct century for two-digit years. Its logic ('if year <= current_year_2d: full_year = 2000 + year else: full_year = 1900 + year') is a misinterpretation of the RFC requirement. For example, in 2024, if the input year is '25', the agent's logic would incorrectly compute 1925 instead of 2025."
+      }
+    ]
+  },
+  "django__django-12039": {
+    "7": [
+      {
+        "id": "c9df8b22-7955-43b4-a219-73a457fad547",
+        "action_index": 7,
+        "category": "inheritance",
+        "reason": "The agent correctly designed a fix for the 'opclasses' issue in the 'IndexColumns' class by checking whether suffixes and opclasses were non-empty before adding spaces. However, due to its incomplete validation script (see 3.1.2), it failed to identify the same logical error present in the parent class 'Columns'."
+      }
+    ]
+  },
+  "django__django-12406": {
+    "25": [
+      {
+        "id": "2784312c-4c62-4191-957f-a713808d8416",
+        "action_index": 25,
+        "category": "component_coordination",
+        "reason": "The ground truth solution requires passing the 'blank' attribute from the model field (in 'related.py') to the form field constructor (in 'models.py'). The agent never recognized the need to modify the data source in 'related.py'. Instead, it only attempted to fix the issue on the receiving end ('models.py') by inferring or handling the missing information."
+      },
+      {
+        "id": "c2879406-00e6-4e4c-a9d5-6192e0ec91da",
+        "action_index": 25,
+        "category": "control_flow",
+        "reason": "In its first attempt to fix 'ModelChoiceField.__init__', the agent implemented a logically flawed algorithm. The condition 'any(f.name == to_field_name for f in queryset.model._meta.fields if not f.blank)' was overly complex and incorrect, as it failed at runtime during initialization due to the queryset being empty — a case the agent did not anticipate."
+      }
+    ],
+    "33": [
+      {
+        "id": "8561252e-5e62-49f0-8216-b7afe79958f5",
+        "action_index": 33,
+        "category": "context_forgetting",
+        "reason": "During iteration and debugging, the agent lost track of which fix version had been validated as correct. The diff it submitted contained the faulty logic produced at step 34, rather than the logic it later validated successfully. This shows that after going through the complex process of 'attempt → fail → debug → find a solution → clean up code', the agent lost track of the currently valid solution and ultimately submitted the wrong version."
+      }
+    ]
+  },
+  "django__django-12741": {
+    "8": [
+      {
+        "id": "b594403f-5497-4de7-9c19-ea04bc5394ff",
+        "action_index": 8,
+        "category": "interface_contract",
+        "reason": "The agent correctly modified the method signature of execute_sql_flush in 'operations.py'. However, it failed to update the corresponding call to this function in 'django/core/management/commands/flush.py'. In its final reasoning (operation 14), the agent even explicitly pointed out the backward-incompatible nature of the change and the need to update the callers, but it never actually searched for or applied the necessary changes."
+      }
+    ]
+  },
+  "django__django-12774": {
+    "21": [
+      {
+        "id": "0332f87a-1f1a-49e4-8ac1-6014bbe19d8b",
+        "action_index": 21,
+        "category": "specific_case_overfitting",
+        "reason": "The agent's fix logic directly iterated over the self.model._meta.constraints list. In Django, this attribute only includes constraints explicitly defined in the current model's Meta class. However, a field's uniqueness may also come from inherited abstract base models. The correct fix used the opts.total_unique_constraints attribute, which provides a more comprehensive set that includes unique constraints from the model itself and all of its parent classes. The validation model created by the agent was very simple and did not involve inheritance, so its flawed fix happened to pass this specific validation case. But the fix would fail in more complex real-world scenarios (such as model inheritance), because it did not handle constraints inherited from parent classes—an example of classic overfitting. The root cause of this overfitting lies in the agent's lack of deep understanding of the framework's internal mechanisms."
+      }
+    ],
+    "10": [
+      {
+        "id": "d6e75d36-d83c-44a2-878f-c2e5778429ac",
+        "action_index": 10,
+        "category": "reproduction_script_failure",
+        "reason": "The agent lacked the ability to successfully set up a minimal, runnable issue reproduction environment. For complex frameworks like Django, correctly initializing and configuring the environment is a necessary prerequisite for validating a fix. The agent's deficiency in this area not only severely slowed down the fixing process but also forced it to validate in an overly simplified environment, laying the groundwork for subsequent 'overfitted' fixes."
+      }
+    ]
+  },
+  "django__django-12858": {
+    "11": [
+      {
+        "id": "eab51b1e-ca13-4b17-a0c8-761a1170d771",
+        "action_index": 11,
+        "category": "control_flow",
+        "reason": "The agent implemented a flawed boolean logic fix. The correct truth condition required a simple 'and': 'fld.get_transform(part) is None and fld.get_lookup(part) is None'. However, the agent implemented a more complex and logically different condition: '(fld.get_transform(part) is None and not hasattr(field, 'get_lookup')) or (hasattr(field, 'get_lookup') and fld.get_lookup(part) is None)'. This overly complicated logic indicates a flaw in constructing the control flow."
+      },
+      {
+        "id": "c4c0c73a-7d2b-4898-9229-d9855b707dd7",
+        "action_index": 11,
+        "category": "algorithmic_implementation",
+        "reason": "The agent's fix logic was overly complex and incorrect. It tried to handle one case when fld was None, and then other cases under complicated conditions such as 'fld.get_transform(part) is None and not hasattr(fld, 'get_lookup')' or 'hasattr(fld, 'get_lookup') and fld.get_lookup(part) is None'. The correct fix only needed to check, when fld is not None, that both fld.get_transform(part) and fld.get_lookup(part) are None in order to determine that the field, related field, or lookup does not exist."
+      }
+    ],
+    "1": [
+      {
+        "id": "1405d51f-296b-452e-b938-ef59b0de479e",
+        "action_index": 1,
+        "category": "non_progressive_iteration",
+        "reason": "During the localization phase, the agent fell into a loop, repeatedly checking the same erroneous file ('/repo/django/core/checks/model_checks.py') five times."
+      }
+    ]
+  },
+  "django__django-13195": {
+    "4": [
+      {
+        "id": "5c2e8772-29a0-4f15-bd8b-cfa40b7a329b",
+        "action_index": 4,
+        "category": "interface_contract",
+        "reason": "The agent's fix was incomplete because it only modified the 'delete' method without updating the methods that call it. The ground truth patch shows that the calls to 'delete' in 'django/contrib/messages/storage/cookie.py' and 'django/contrib/sessions/middleware.py' must be updated to pass the 'samesite' value. Without changing the method signature and updating its callers, the agent's fix would be ineffective in the real scenarios described in the issue, because the 'delete' method would never receive the 'samesite' information for cookies."
+      }
+    ],
+    "5": [
+      {
+        "id": "4df920f8-5071-477a-acd9-6fd93d4edb2a",
+        "action_index": 5,
+        "category": "component_coordination",
+        "reason": "This issue is closely tied to interface contracts. The HttpResponse component (which provides the delete_cookie method) and other components that call it (such as the sessions middleware and messages storage) need to work in coordination. Configuration information (such as SESSION_COOKIE_SAMESITE) exists at the caller side, while the execution logic resides in HttpResponse. The agent only modified HttpResponse and completely ignored its callers. The correct fix, after modifying the delete_cookie interface, also updated all the callers to ensure they passed the correct samesite value when calling it, thereby achieving proper coordination between components."
+      }
+    ]
+  },
+  "django__django-13344": {
+    "15": [
+      {
+        "id": "ea4504d0-36e8-4321-bf97-0d02df5f1cac",
+        "action_index": 15,
+        "category": "non_progressive_iteration",
+        "reason": "The agent got stuck in an interaction loop, applying the same flawed fix strategy—awaiting a coroutine—at different points in the call stack. It first added logic in 'asgi.py' (operation 16), then in 'base.py's get_response_async' (operation 22), and later in the 'adapt_method_mode' (operation 29)."
+      }
+    ],
+    "3": [
+      {
+        "id": "a8889182-c3a0-4edb-ad33-155d34c844d4",
+        "action_index": 3,
+        "category": "error_stack_trace",
+        "reason": "The agent did not consider why get_response_async was returning an unexecuted coroutine. Instead, after encountering this exception object, it simply tried to resolve it by using await. The root cause of the issue was that the upstream middleware chain was not being properly constructed and invoked, causing the coroutine not to be awaited in the correct place. The agent's fix merely 'patched' it downstream, masking the real problem."
+      }
+    ],
+    "4": [
+      {
+        "id": "9759abfd-d4d9-4162-b556-cf5b353ed2c5",
+        "action_index": 4,
+        "category": "evasive_repair",
+        "reason": "Throughout the fix process, the agent repeatedly used the pattern `while asyncio.iscoroutine(response): response = await response`. It added similar logic in the __call__ method of asgi.py, the get_response_async method of base.py, and the _get_response_async method."
+      }
+    ]
+  },
+  "django__django-13406": {
+    "38": [
+      {
+        "id": "4920217a-89d2-4986-b4c8-7b2abe29a0aa",
+        "action_index": 38,
+        "category": "verification_weakening",
+        "reason": "After multiple failed attempts to fix the code, the agent modified the replication script in action 39 to test a different working scenario (pickling the entire queryset). Then, in action 40, it used the successful result of this weakened/modified test to wrongly validate its work, effectively changing the test to fit the code instead of changing the code to pass the test."
+      }
+    ],
+    "13": [
+      {
+        "id": "c9ddd1c3-4a1c-471a-bab5-74da69813fd5",
+        "action_index": 13,
+        "category": "keywords_location",
+        "reason": "The agent repeatedly executed `grep -n \"def __getstate__\"` and `tail -n +2180 /repo/django/db/models/sql/query.py`, indicating it was searching for code related to state and values. It discovered the fields `values_select` and `default_cols`, and made extensive modifications in the __setstate__ method (e.g., `self.query.values_select = values_query['values_select']`). This behavior is characteristic of 'keyword spotting': it saw `values_select` and assumed fixing it would solve the issue, without realizing that the real root cause was that the iterator class (`_iterable_class`) was not being properly serialized and deserialized."
+      }
+    ],
+    "29": [
+      {
+        "id": "e152bfac-b4f7-4893-a866-abd8b28f3f6c",
+        "action_index": 29,
+        "category": "control_flow",
+        "reason": "The condition added by the agent in __setstate__ was incorrect. It assumed that `if value` was sufficient to determine whether it was a ValuesIterable, which is not the case."
+      }
+    ],
+    "43": [
+      {
+        "id": "de705bcf-0131-4a6c-af77-58450d1ebfd0",
+        "action_index": 43,
+        "category": "component_coordination",
+        "reason": "The serialization behavior of QuerySet relies on the collaboration of two key components: __getstate__ (saving state during serialization) and __setstate__ (restoring state during deserialization). The agent modified __setstate__ but did not (or incorrectly) modify __getstate__, causing the two components to fail to work together."
+      }
+    ],
+    "30": [
+      {
+        "id": "20e8ea2c-5b41-40f0-aada-b02ce26527b0",
+        "action_index": 30,
+        "category": "reproduction_output_misreading",
+        "reason": "The script output showed `After pickle/unpickle: Type of first result: <class '__main__.Toy'>`, which clearly indicated that the fix had failed. The agent's reaction: even after this error output appeared multiple times, it still concluded that 'The changes look good' and proceeded to the next round of modifications. This shows that the agent did not correctly understand the meaning of the validation result, or that its internal logic was dominated by the wrong fix direction, causing it to ignore the most critical failure signal."
+      }
+    ]
+  },
+  "django__django-13449": {
+    "34": [
+      {
+        "id": "f3c90cef-d292-4616-bc29-9bc0299e4fda",
+        "action_index": 34,
+        "category": "algorithmic_implementation",
+        "reason": "When attempting to fix the previously generated invalid SQL, the agent tried to manually reconstruct the SQL for the 'Lag' function inside 'LagLeadFunction.as_sqlite'. It used `','.join('%s' for _ in params)` to generate placeholders. This was an incorrect reimplementation of SQL generation logic, because it did not compile the actual source expressions of the function but only created placeholders for the parameters themselves, resulting in logically incorrect SQL."
+      }
+    ],
+    "35": [
+      {
+        "id": "80dd298b-1ca8-43b7-ac29-21602beea79a",
+        "action_index": 35,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent's final fix produced a query that ran without raising an exception. However, the output was logically incorrect: 'lag=7'. The value '7' came from the 'offset' parameter of the call `Lag('amount', 7)`, rather than from the previous row's 'amount' value. The agent mistakenly interpreted the absence of a traceback as a successful fix, ignored the fact that the returned data was meaningless, and went on to commit the faulty patch."
+      }
+    ],
+    "14": [
+      {
+        "id": "10b93383-c748-495f-8720-8b9a30952d30",
+        "action_index": 14,
+        "category": "blindly_strategy_switching",
+        "reason": "The agent showed a blind pattern of switching its fix location. It first modified 'LagLeadFunction' in 'window.py' (operation 15), then switched to modifying the 'Window' class in 'expressions.py' (operation 27), and finally returned to modifying 'LagLeadFunction' again (operation 35). This oscillation indicates a lack of a systematic debugging plan and reliance on a disorganized trial-and-error approach between two related components."
+      }
+    ]
+  },
+  "django__django-13512": {
+    "6": [
+      {
+        "id": "9716e28f-3ab2-42a9-86d5-5a8d8bc527d3",
+        "action_index": 6,
+        "category": "keywords_location",
+        "reason": "The issue description mentioned that `json.dumps` defaults to ASCII encoding. The agent correctly identified the root cause as the 'ensure_ascii' parameter. However, it localized the fix based on the keywords 'JSON' and 'encoder', leading it to modify the generic 'DjangoJSONEncoder' in 'django/core/serializers/json.py'. This was a superficial match and failed to recognize the correct, more specific locations in 'django/contrib/admin/utils.py' and 'django/forms/fields.py', where `json.dumps` was actually being called without the necessary parameter. The agent modified a general component instead of the specific usage points."
+      }
+    ],
+    "8": [
+      {
+        "id": "cdb0e6a4-2771-48a4-900f-ff584469c469",
+        "action_index": 8,
+        "category": "reproduction_script_failure",
+        "reason": "The validation script created by the agent was a standalone script detached from the Django runtime environment. It only tested the behavior of DjangoJSONEncoder in isolation, without setting up a minimal application that could simulate the Django Admin environment. As a result, the script failed from the start to fully reproduce the real scenario described in the issue. Even if the agent's modification (wrongly changing the global encoder) allowed this isolated script to output the expected result, it could not prove that the original bug (the Admin interface display issue) was resolved. The agent validated the component it modified, but since that component was not the root cause, its validation script could not truly verify the effectiveness of the fix."
+      }
+    ]
+  },
+  "django__django-13513": {
+    "2": [
+      {
+        "id": "40720c39-94dd-468c-b95e-bd8e1fad1d32",
+        "action_index": 2,
+        "category": "issue_misleading",
+        "reason": "The agent's fix strategy was completely misled by the suggestion in the PR description. The fix logic it attempted to implement was almost identical to this suggestion. It blindly adopted the oversimplified solution proposed in the issue description."
+      }
+    ],
+    "8": [
+      {
+        "id": "a957bdb9-795d-4368-a656-aefa5780ecbd",
+        "action_index": 8,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent ran its flawed validation script both before the fix (action 6) and after the fix (action 9), receiving exactly the same output in both cases. Despite this clearly showing that nothing had changed, the agent mistakenly concluded, 'The fix seems to work!'. This demonstrates its inability to correctly interpret the output of its own tests and to recognize that the fix had no observable effect based on its script."
+      }
+    ]
+  },
+  "django__django-13551": {
+    "10": [
+      {
+        "id": "b670abcf-0b1b-483c-a686-1e9fe3584d1f",
+        "action_index": 10,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent's fix hardcoded the email field name in a line like 'email = getattr(user, 'email', '') or user.email'. The ground truth patch shows that the correct, framework-aware way to retrieve the email is by using the user.get_email_field_name() method. This reflects Django's support for customizable user models, where the email field can be renamed. The agent's solution works for the default case but lacks the robustness required by the framework, demonstrating insufficient domain knowledge of Django's custom user model conventions."
+      }
+    ],
+    "9": [
+      {
+        "id": "42bdefa3-a4d4-4745-bfbd-cbb033d4644a",
+        "action_index": 9,
+        "category": "insufficient_domain_knowledge",
+        "reason": "Manifestation: The agent failed to use the standard Django user model method get_email_field_name() for retrieving the email field name. • Flaw analysis: The correct fix, `email_field = user.get_email_field_name()`, reflects an understanding of Django's framework design patterns. This method was specifically designed to solve the above 'overfitting' issue by allowing the code to dynamically and decoupledly obtain the email field name from the concrete model implementation. Due to a lack of this domain knowledge, the agent failed to produce the framework-expected general solution, resulting in an overfitted fix."
+      }
+    ]
+  },
+  "django__django-13568": {
+    "8": [
+      {
+        "id": "9309947c-b65c-4eca-ae28-978e91fab685",
+        "action_index": 8,
+        "category": "insufficient_verification_capability",
+        "reason": "The agent created a replication script but failed to properly set up the minimal environment. In the 'settings' call, it defined a custom 'User' model but did not set the 'AUTH_USER_MODEL' setting to point to it. As a result, the check_user_model function, which depends on this setting, ultimately checked Django's default User model instead of the custom model the agent intended to use to trigger the bug."
+      }
+    ],
+    "10": [
+      {
+        "id": "d6525f62-7b6a-4ed7-8e33-3ff20f5c073e",
+        "action_index": 10,
+        "category": "boundary_handling",
+        "reason": "The agent's fix only worked for the simplest case provided in the PR description (UniqueConstraint(fields=['username'])). However, it did not account for more complex but common edge cases, such as when USERNAME_FIELD is part of a multi-field unique constraint, which made the fix lack generality. The correct logic should be to check whether there exists a unique constraint containing only USERNAME_FIELD."
+      }
+    ],
+    "16": [
+      {
+        "id": "fd85f991-bd31-459d-a12e-01891aa6d9ce",
+        "action_index": 16,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent observed an empty OBSERVATION and mistakenly interpreted it as a passing test. In reality, this empty output exposed the flaw in its fix logic. It should have expected the test to fail (i.e., by printing an auth.E003 error), but the absence of such an error instead proved that its logic was flawed."
+      }
+    ]
+  },
+  "django__django-13925": {
+    "20": [
+      {
+        "id": "5139a5a5-bf2b-47a5-a2c9-602e5086052a",
+        "action_index": 20,
+        "category": "keywords_location",
+        "reason": "Since the error could not be reproduced, there was no stack trace to guide the search, so the agent fell back to guessing the error location. It chose 'django/db/models/options.py', possibly because that file contains logic related to model \\\"options\\\" and \\\"primary key\\\". This is a shallow association with the keywords in the problem description."
+      }
+    ],
+    "19": [
+      {
+        "id": "0e54064b-b9c4-4bd8-ac18-60146b89d3ba",
+        "action_index": 19,
+        "category": "reproduction_script_failure",
+        "reason": "This script was unable to trigger the warning described by the user from the very beginning. After multiple failed attempts to set up the environment (such as ModuleNotFoundError, RuntimeError), the agent eventually built a script that could run but did not produce the expected error. However, it did not realize that this validation script was invalid."
+      }
+    ]
+  },
+  "django__django-14011": {
+    "10": [
+      {
+        "id": "99cb74c5-c08a-450f-b324-7b2ce5fd060a",
+        "action_index": 10,
+        "category": "insufficient_verification_capability",
+        "reason": "The reason the agent's fix was able to 'pass' self-testing is that its test case was not well-designed. The assertion only checked whether the number of connections in the main thread remained the same before and after. It could not verify whether the server subthread correctly used the shared in-memory database connection. Since the agent's fix ignored connections_override, its server thread actually created a new, independent in-memory database instead of using the one shared by the main thread. This critical failure point was completely uncovered by the agent's test case, resulting in a 'false positive' validation."
+      }
+    ],
+    "5": [
+      {
+        "id": "677ee708-fed4-4244-8e44-c8b0375840c0",
+        "action_index": 5,
+        "category": "algorithmic_implementation",
+        "reason": "The agent's fix algorithm itself is incorrect. The correct algorithm should be: 1. (Missing) At the start of each thread, check whether connections_override exists, and if so, use it to set the database connection for that thread. 2. After each request is processed, close the connection. The agent's solution only implemented step 2, and chose to close the connection in the finally block of process_request_thread. However, the correct fix should close the connection in the close_request hook method, which is a more robust and lifecycle-consistent choice within the framework design."
+      }
+    ],
+    "4": [
+      {
+        "id": "1bf4082f-64af-47ca-a4c1-0d76eb9e01ad",
+        "action_index": 4,
+        "category": "component_coordination",
+        "reason": "When analyzing the problem, the agent did identify that ThreadedWSGIServer was the part that needed modification, but it completely overlooked how this class is used by LiveServerTestCase. The mistaken assumption was: the agent believed that simply forcing all database connections to close (connections.close_all()) at the end of each request-handling thread would solve the problem."
+      }
+    ]
+  },
+  "django__django-14034": {
+    "2": [
+      {
+        "id": "46015a4c-013a-457d-8943-5dc6a96c83a2",
+        "action_index": 2,
+        "category": "keywords_location",
+        "reason": "The agent's localization was driven by keywords in the problem description, such as 'MultiValueField', 'is_valid()', and 'required'. It established a direct, logical but superficial link between 'is_valid()' failure and the server-side validation logic of fields (the 'clean' method) located in 'django/forms/fields.py'. A deeper analysis should have considered the entire form lifecycle, including the rendering of widget attributes as a potential fix location. By focusing only on the server-side validation symptoms, the agent missed the actual fix location in 'django/forms/boundfield.py'."
+      }
+    ],
+    "8": [
+      {
+        "id": "4ec88217-b49f-49a7-8fd2-60473ddd330c",
+        "action_index": 8,
+        "category": "component_coordination",
+        "reason": "The agent only modified the clean method of MultiValueField, completely ignoring the build_widget_attrs method in BoundField that is responsible for rendering widget attributes. It attempted to solve the issue during the validation phase after data submission, whereas the correct approach is to ensure data integrity at the source by rendering the correct HTML attributes before submission. This neglect of the collaboration between components was the core reason for the failed localization."
+      }
+    ],
+    "11": [
+      {
+        "id": "d1df60ba-ca83-44de-a1ab-afa6cd2c445c",
+        "action_index": 11,
+        "category": "reproduction_output_misreading",
+        "reason": "This part of the agent's analysis completely went against the original intent of the PR. The PR clearly stated that is_valid() should return False. The agent not only misread the result, but also provided a seemingly reasonable yet completely incorrect justification for this wrong result."
+      }
+    ]
+  },
+  "django__django-14140": {
+    "7": [
+      {
+        "id": "76b50f1f-437a-48a5-890b-206ada232bcf",
+        "action_index": 7,
+        "category": "issue_interference",
+        "reason": "The problem description mentioned two possible solutions: one from the linked PR (which became the ground truth), which removed the special case for a single Q object, and another 'more backward-compatible approach' that added type checking. The agent chose to implement the latter, more complex 'backward-compatible' method (Action 8). In its final reasoning (Action 10), the agent explicitly confirmed that it followed this suggestion. This alternative path provided in the problem description interfered with the agent’s ability to find the simpler, canonical solution represented by the ground truth patch."
+      }
+    ]
+  },
+  "django__django-14311": {
+    "8": [
+      {
+        "id": "6893490a-2e00-43bd-bcc2-1a58a1d4a528",
+        "action_index": 8,
+        "category": "specific_case_overfitting",
+        "reason": "The agent's fix correctly addressed the specific case mentioned in the problem description (dashed modules, such as 'foo.bar.baz') by changing the code to use '__main__.__spec__.name'. However, this fix was overly simplistic. It broke the previous handling of packages run with '-m' (for example, 'python -m myapp'), where '__spec__.name' would be 'myapp.__main__', while the correct argument should be 'myapp' (the parent). The agent’s fix overfitted to the new case but failed to maintain compatibility with the old one, whereas the ground truth patch used conditional checks to handle both."
+      }
+    ],
+    "9": [
+      {
+        "id": "64b09bb9-d1d6-4ada-abf7-5d2fe4120720",
+        "action_index": 9,
+        "category": "boundary_handling",
+        "reason": "The agent's logic can be seen as handling scenario 1, the 'normal' input, but failing to correctly handle scenario 2, the 'edge' or 'special' case. The correct fix used the condition if (spec.name == '__main__' or spec.name.endswith('.__main__')) to precisely identify and handle the boundary case of running a package, demonstrating stronger robustness."
+      }
+    ]
+  },
+  "django__django-14534": {
+    "24": [
+      {
+        "id": "ac788f15-561b-4a75-b5f6-a4b6a87455f3",
+        "action_index": 24,
+        "category": "issue_misleading",
+        "reason": "The problem description explicitly suggested changing the code to:\nclass BoundWidget:\n    ...\n    def id_for_label(self):\n        return self.data['attrs']['id']\nIn step 24, the agent fully adopted this flawed suggestion without critically evaluating or improving it (for example, by modifying it to a safer .get() call). This blind adherence to the problem description led it to ultimately submit non-robust code."
+      }
+    ]
+  },
+  "django__django-14580": {
+    "2": [
+      {
+        "id": "5a3e96e3-242d-4f39-94f7-1d6c5f3c28db",
+        "action_index": 2,
+        "category": "issue_misleading",
+        "reason": "The problem description included the statement, 'I think this is a bug in the django.db.migrations module's writer, but I'm not sure.' The agent latched onto this suggestion without exploring other possibilities. In Action 3, after a brief exploration, the agent decided to look at 'writer.py' and said: 'Great! We found the writer.py file responsible for generating migration files.' This decision directly followed the problem's hint and led the agent to focus all its efforts on the wrong file, while ignoring the relevant 'serializer.py' where the actual bug was located."
+      }
+    ],
+    "6": [
+      {
+        "id": "6f567d5d-0550-4ea9-83ad-afdc3c376b8d",
+        "action_index": 6,
+        "category": "reproduction_script_failure",
+        "reason": "The agent's second simplified script ('copy_Bug2.py') was intended to isolate the logic and reproduce the error. However, the simplified implementation of the 'MigrationWriter' class in the script unintentionally included the logic that actually fixed the issue. The script checked 'models' in 'bases' and added the correct import. Therefore, when it was run in Action 7, the script produced the 'correct' output but failed to reproduce the actual error it was meant to demonstrate."
+      }
+    ]
+  },
+  "django__django-14725": {
+    "16": [
+      {
+        "id": "e30acf34-7370-475f-bb29-29f982455475",
+        "action_index": 16,
+        "category": "recurring_pattern",
+        "reason": "The task was to provide an 'edit-only' mode for model formsets. In Django, this functionality is implemented through two parallel factory functions: 'modelformset_factory' and 'inlineformset_factory'. The agent correctly implemented the logic for 'modelformset_factory' but completely omitted the corresponding changes needed for 'inlineformset_factory', which is also located in 'django/forms/models.py'. The ground truth patch correctly modified both functions to ensure consistent behavior."
+      }
+    ],
+    "28": [
+      {
+        "id": "b9149e4b-63b3-424e-a7bb-658c1179b6da",
+        "action_index": 28,
+        "category": "verification_weakening",
+        "reason": "The agent modified the test assertion. Instead of checking the primary requirement (that no new object was created), it changed the test to check for a specific validation error message that its own flawed implementation would produce. This is a form of test weakening, as it altered the validation target to match the incorrect implementation, making the test easier to 'pass'."
+      }
+    ],
+    "10": [
+      {
+        "id": "ad1a6a4c-323e-429d-8618-ebb41fc5e831",
+        "action_index": 10,
+        "category": "redundant_erroneous_implementation",
+        "reason": "Instead of adopting the final correct 'edit_only' parameter, the agent designed and implemented an entirely new logic called 'can_create'. It added a can_create attribute to BaseModelFormSet and modelformset_factory, and wrote validation and save logic around it. This implementation was functionally similar to the final correct fix, but redundant and incorrect in terms of naming and details, essentially reinventing the wheel."
+      }
+    ]
+  },
+  "django__django-14771": {
+    "8": [
+      {
+        "id": "8c27684b-beaf-4b99-9117-b07aededd639",
+        "action_index": 8,
+        "category": "boundary_handling",
+        "reason": "It assumed that all '-X' options were key-value pairs. The ground truth patch correctly handled the edge case where an option is a boolean flag (for example, '-X dev', where the value is True), which should be formatted without '=value'. The agent's solution worked in some cases but was not as robust as the ground truth, since it could not correctly handle this specific condition."
+      }
+    ],
+    "9": [
+      {
+        "id": "b177da86-ca67-43a6-bbe4-253626af1738",
+        "action_index": 9,
+        "category": "insufficient_domain_knowledge",
+        "reason": "This error also stemmed from the agent's lack of domain knowledge about the Python command-line interface (CLI). It did not understand that the Python interpreter parses the -X option in two different ways: • key=value format (e.g., -Xfaulthandler=file.log) • boolean flag format (e.g., -Xdev, -Xutf8). Due to this lack of knowledge, it failed to implement logic that could correctly handle both cases, and instead incorrectly normalized all cases into the key=value format. In addition, the correct fix should also consider that _xoptions is specific to CPython and therefore requires a sys.implementation.name == 'cpython' check, which the agent also omitted."
+      }
+    ]
+  },
+  "django__django-14792": {
+    "5": [
+      {
+        "id": "667cd2c5-0684-4b13-a7c7-3c538b1873ec",
+        "action_index": 5,
+        "category": "keywords_location",
+        "reason": "Key description from the issue:\n'This later, incorrectly, becomes \"Etc/GMT+10\" in the resulting query due to the return value of _prepare_tzname_delta() of the Postgres DatabaseOperations class'\n\nThe agent's reasoning:\n\nSaw _prepare_tzname_delta()\nSaw Postgres DatabaseOperations class\nDirectly inferred: the problem lies in the PostgreSQL DatabaseOperations class."
+      }
+    ]
+  },
+  "django__django-15037": {
+    "8": [
+      {
+        "id": "79a1e7c8-9294-4edc-869a-f1487ad06cf2",
+        "action_index": 8,
+        "category": "component_coordination",
+        "reason": "The agent's core difficulty lay in coordinating changes between two related components: the data provider ('sqlite3/introspection.py') and the data consumer ('inspectdb.py'). In Action 9, it modified the data provider but not the consumer, so the fix had no effect. In Action 12, it correctly modified the consumer logic to handle the 'to' field parameter, but this failed (Action 13) because the provider still did not correctly supply the necessary information. The agent's inability to implement the required coordinated changes across both components led to its initial attempts failing."
+      },
+      {
+        "id": "b94c1ac1-3d3a-422a-aa5e-2ca2a3fc5cd8",
+        "action_index": 8,
+        "category": "non_progressive_iteration",
+        "reason": "The agent fell into an iterative loop, making incremental and ineffective changes. It repeatedly switched focus between 'inspectdb.py' and 'sqlite3/introspection.py', trying different modifications (for example, changing 'get_relations' in Action 9, then 'inspectdb.py' in Action 12, then 'get_relations' again in Action 14, and then switching to 'get_key_columns' in Action 16). This trial-and-error approach without a clear, comprehensive strategy led to a loop where the agent became 'stuck', making only minor tweaks without breaking through to a solution until many rounds later."
+      }
+    ]
+  },
+  "django__django-15103": {
+    "5": [
+      {
+        "id": "a8564ce8-5bd3-4da2-bd36-91969c8d5385",
+        "action_index": 5,
+        "category": "interface_contract",
+        "reason": "The agent correctly identified that 'django/utils/html.py' and 'django/template/defaultfilters.py' were related to the functionality of the 'json.py' script. However, it only modified the core function in 'django/utils/html.py' to make the element_id parameter optional. It failed to apply the same function signature change to the wrapper function in 'django/template/defaultfilters.py', which was registered as a template filter. This resulted in an incomplete fix that ignored the explicit dependency between the template filter and the utility function it calls."
+      }
+    ],
+    "6": [
+      {
+        "id": "16a9901b-a972-4edd-89eb-aaa392ea3165",
+        "action_index": 6,
+        "category": "insufficient_verification_capability",
+        "reason": "The validation script created by the agent, test_json_script.py, directly tested the underlying utility function without verifying it in the real template rendering context, and therefore failed to detect this interface-level issue."
+      }
+    ]
+  },
+  "django__django-15127": {
+    "15": [
+      {
+        "id": "92691354-c3c5-4e35-bd84-ccd904dff43f",
+        "action_index": 15,
+        "category": "evasive_repair",
+        "reason": "The root cause of the problem was that the module-level variable 'LEVEL_TAGS' became stale. The ground truth solution addressed this by updating the variable via a signal whenever the relevant settings changed. However, the agent's solution completely bypassed the stale variable issue. It modified the Message.level_tag property to re-fetch and re-compute the tags from the settings on each access."
+      }
+    ],
+    "16": [
+      {
+        "id": "67e67999-26f8-4113-bffa-33eadc3bdcab",
+        "action_index": 16,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The reason the agent adopted an evasive fix was fundamentally due to its lack of understanding of Django’s signal system. Django provides a 'setting_changed' signal, specifically designed to perform updates after configuration options are modified (especially when overridden in tests using @override_settings). This is the standard and most efficient way to handle such issues."
+      }
+    ]
+  },
+  "django__django-15375": {
+    "6": [
+      {
+        "id": "db711f42-8187-4889-8591-e7035ae4ea37",
+        "action_index": 6,
+        "category": "error_stack_trace",
+        "reason": "The problem description showed the incorrect SQL: 'SELECT FROM (…) subquery'. The agent correctly inferred that 'SQLAggregateCompiler' in 'compiler.py' was responsible for this structure. However, it mistakenly assumed the error was in the compiler itself and attempted to patch it by adding a 'SELECT 1' clause when the select list was empty (Action 8). This was a superficial fix based on the final erroneous output, failing to investigate why the select list was empty in the first place—the actual root cause located in 'aggregates.py'."
+      }
+    ],
+    "8": [
+      {
+        "id": "ac12a499-78f8-4f2b-a3fa-fced8f0dc15f",
+        "action_index": 8,
+        "category": "component_coordination",
+        "reason": "After the evasive fix was applied, the SQL syntax error disappeared, but the test case began failing with KeyError: 'id__sum' and returned an empty dictionary {}. This was because the root cause had not been resolved."
+      },
+      {
+        "id": "86e2096c-bccb-4fd8-ab28-aeb74d5dc939",
+        "action_index": 7,
+        "category": "evasive_repair",
+        "reason": "The agent did not investigate why the sql variable was empty, but instead crudely inserted a 1 to avoid the SQL syntax error. It only fixed the most superficial symptom (invalid syntax) while completely ignoring the root cause: the aggregate expression (Sum) was not being correctly translated into an SQL fragment. This incorrect fix strategy led the agent down an entirely wrong debugging path."
+      }
+    ]
+  },
+  "django__django-15382": {
+    "9": [
+      {
+        "id": "e5eaecf6-b60a-49a5-aae3-362f206a604a",
+        "action_index": 9,
+        "category": "error_stack_trace",
+        "reason": "The agent correctly inferred that when an empty Exists subquery is negated, it should be equivalent to a TRUE condition, thus not affecting other parts of the WHERE clause. It also correctly observed that the EmptyResultSet exception was key to this process. However, it localized the issue at the point where the exception was caught (WhereNode.as_sql in where.py), rather than at the source where the exception was raised and should have been handled more gracefully (Exists.as_sql in expressions.py). It attempted to fix the symptom downstream instead of addressing the problem at its origin. The agent focused all its attention on the as_sql method in django/db/models/sql/where.py, where the EmptyResultSet exception was ultimately handled, rather than intercepting it effectively at its source."
+      }
+    ],
+    "15": [
+      {
+        "id": "7ddf366b-0632-4390-8b94-92f71723a8c5",
+        "action_index": 15,
+        "category": "reproduction_script_failure",
+        "reason": "The agent encountered great difficulty in creating a workable reproduction/validation script. It failed multiple times due to issues such as Django settings not being configured and ModuleNotFoundError. This consumed a large number of iterations and demonstrated the agent's lack of ability to set up a minimal, self-contained testing environment. From Action 14 to Action 18, the agent kept working on fixing its reproduce.py script instead of focusing on the core code fix."
+      }
+    ],
+    "11": [
+      {
+        "id": "64761181-9184-474f-8b57-2ba2f61f4958",
+        "action_index": 11,
+        "category": "algorithmic_implementation",
+        "reason": "The core fix logic of the agent contained a fundamental flaw. It attempted to check whether the child of a WhereNode was an instance of models.Exists. However, during Django's query compilation process, the Exists expression is already wrapped into a Lookup object or another internal expression object by the time it reaches the WhereNode. As a result, the condition isinstance(child, models.Exists) would never be true, rendering its fix logic completely ineffective. The agent made an incorrect assumption about the object types it was working with, which caused its algorithm (checking the type and adjusting the counter accordingly) to fail to function as intended."
+      }
+    ]
+  },
+  "django__django-15572": {
+    "9": [
+      {
+        "id": "7b9717ba-2139-4981-80e3-33c4b64fc85a",
+        "action_index": 9,
+        "category": "recurring_pattern",
+        "reason": "The agent correctly identified the fix pattern: adding a truthiness check ('if dir') to the generator to filter out empty directory paths. However, it only applied this fix to one of the two nearly identical list comprehensions in the 'get_template_directories' function. It did not apply the same fix to 'loader.get_template_directories'."
+      }
+    ]
+  },
+  "django__django-16560": {
+    "10": [
+      {
+        "id": "4f0c5d29-b30e-4e8a-9adb-60f0a2d0d080",
+        "action_index": 10,
+        "category": "algorithmic_implementation",
+        "reason": "The intended functionality of the get_violation_error_message method was to return a formatted error message string, but the agent modified it to return a full ValidationError instance. This altered the original design intent of the method. Subsequently, in the validate method, the agent used raise self.get_violation_error_message() to throw the exception. While this may coincidentally work syntactically, it violated the established design pattern in the codebase, where the validate method itself is responsible for constructing and raising the ValidationError. The correct approach should have been to call get_violation_error_message() in validate to obtain the message string, and then use it along with self.violation_error_code to construct and raise the exception."
+      }
+    ],
+    "6": [
+      {
+        "id": "a6cd5efb-4630-4cd1-b2e0-2dddf5f9f203",
+        "action_index": 6,
+        "category": "context_forgetting",
+        "reason": "The agent fell into a loop while attempting to apply its fix. It repeatedly used 'str_replace' in the editor tool with an incorrect 'old' parameter, causing the operation to silently fail (\"no replacement performed\"). Despite multiple failures, it kept retrying the same ineffective action until finally, in Action 11, it changed strategy by creating a new file and moving it."
+      }
+    ],
+    "15": [
+      {
+        "id": "34ea06e7-5a41-4e32-bd43-5ecee0055cf3",
+        "action_index": 15,
+        "category": "inheritance",
+        "reason": "The agent’s core failure was ignoring changes needed in dependent components. By modifying __init__ in the parent class BaseConstraint, it created a new contract for all subclasses. While it updated the subclasses in 'django/db/models/constraints.py', it failed to find and update 'ExclusionConstraint' in 'django/contrib/postgres/constraints.py'. This omission left the subclass's 'super().__init__()' call out of sync with the new parent constructor, resulting in an incomplete and incorrect fix."
+      }
+    ],
+    "14": [
+      {
+        "id": "357cf743-f030-474a-9e45-e0a2e8a5ceaa",
+        "action_index": 14,
+        "category": "recurring_pattern",
+        "reason": "The agent missed another important subclass, ExclusionConstraint, located in django/contrib/postgres/constraints.py. This class also inherits from BaseConstraint and needed to be updated to support violation_error_code. The agent’s fix only covered the parts it saw in a single file and did not comprehensively search for and update all classes inheriting from BaseConstraint, resulting in an incomplete fix."
+      }
+    ]
+  },
+  "django__django-16631": {
+    "1": [
+      {
+        "id": "88791424-77b4-4fa8-a9d6-1ca8a24da070",
+        "action_index": 1,
+        "category": "referred_code_location",
+        "reason": "Characteristic: The agent based its localization and fix solely on the code explicitly mentioned in the PR description (AbstractBaseUser.get_session_auth_hash and salted_hmac). • Faulty snippet: The agent’s entire fix process revolved around the files django/contrib/auth/base_user.py and django/utils/crypto.py. • Root problem: The agent failed to further analyze the callers of get_session_auth_hash. The correct fix showed that the key validation logic actually resided in the get_user function of django/contrib/auth/__init__.py. By focusing only on the parts directly referenced in the PR description and ignoring the full session validation call chain and broader code context, the agent’s localization failed."
+      }
+    ],
+    "10": [
+      {
+        "id": "47791881-d794-4e54-b87f-5c234aee5342",
+        "action_index": 10,
+        "category": "component_coordination",
+        "reason": "The agent generated a list of multiple HMAC objects in salted_hmac, including those from both the primary and fallback keys, but in get_session_auth_hash it only returned the first element of the list (i.e., the hash generated by the primary key). The root cause of the agent’s failure lay in a Component Coordination issue: it did not realize that session generation and validation were two components that needed to be modified in coordination."
+      }
+    ]
+  },
+  "django__django-16642": {
+    "7": [
+      {
+        "id": "f165ecb3-c0fe-4f35-9e27-a6cc2f732d7b",
+        "action_index": 7,
+        "category": "data_processing_errors",
+        "reason": "In its first attempt at a fix, the agent incorrectly used the key 'Z' as the Unix compressed file type. It assumed that dictionary keys would directly correspond to file extensions, instead of first verifying the actual output of the mimetypes.guess_type() function, which returns 'compress'. This reflected an error in correctly handling or anticipating the data format returned by the library function."
+      }
+    ],
+    "13": [
+      {
+        "id": "97f0c928-4aad-48b2-a703-6c5cf8da8960",
+        "action_index": 13,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent’s final suggested fix used '\"br\": \"application/x-br\"' for Brotli compression. However, the ground truth patch specified '\"br\": \"application/x-brotli\"'. While the agent correctly identified the key as 'compress' for 'br', it failed to match the exact MIME type required."
+      }
+    ]
+  },
+  "django__django-16667": {
+    "8": [
+      {
+        "id": "fd72a122-e368-40f9-9c56-b9a51dd12db5",
+        "action_index": 8,
+        "category": "evasive_repair",
+        "reason": "The agent's fix merely avoided a crash by adding a catch for OverflowError, but it did not actually address the root cause of the problem or provide proper handling logic for this specific type of error."
+      }
+    ],
+    "11": [
+      {
+        "id": "d988a0b7-57f5-47f0-abe0-c524fdf50e76",
+        "action_index": 11,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent's validation script only checked whether the program would throw an uncaught OverflowError and crash. • Since the agent's evasive fix had already prevented the crash, the script naturally no longer reported an error. • However, the agent did not validate the return value of the repro_view function or the state of the form. It incorrectly interpreted 'not crashing' as 'functioning correctly'. In reality, although the program did not crash, it processed the data incorrectly, returning an invalid date string. The form validation would fail, but this was not a meaningful or correct fix. It merely converted a fatal error (crash) into a hidden data handling error."
+      }
+    ]
+  },
+  "django__django-16938": {
+    "20": [
+      {
+        "id": "f8dffd72-e2a6-4e62-8251-c258dc4ebaba",
+        "action_index": 20,
+        "category": "evasive_repair",
+        "reason": "The proxy attempted to wrap the 'only(\\\"pk\\\")' call inside a generic 'try...except' block. This approach does not address the root cause of the 'FieldError' but instead tries to defensively bypass any potential exceptions."
+      }
+    ],
+    "31": [
+      {
+        "id": "886767a1-92a9-493f-9ba2-a87df2f70fc1",
+        "action_index": 31,
+        "category": "verification_weakening",
+        "reason": "After multiple failed attempts to fix the serializer, the proxy gave up on modifying the library code and instead began fundamentally altering the copy script itself. It introduced a new manager method (Action 27), changed the model's base_manager_name (Action 30), and eventually reimplemented the many-to-many relationship using a custom 'through' model (Action 32). This represents a retreat from solving the actual issue within the library."
+      }
+    ],
+    "27": [
+      {
+        "id": "cb3df733-64c3-4e0d-a351-9914cd88b13c",
+        "action_index": 27,
+        "category": "recurring_pattern",
+        "reason": "The agent focused solely on the django/core/serializers/python.py file from beginning to end. However, the django/core/serializers/xml_serializer.py file contains the exact same logic and flaw. Even if the agent had found the correct fix, it failed to apply it to all similar code instances, resulting in an incomplete fix."
+      }
+    ],
+    "33": [
+      {
+        "id": "529668ad-db3b-49b1-92ef-1562f5774e79",
+        "action_index": 33,
+        "category": "blindly_strategy_switching",
+        "reason": "During its actions, the agent attempted multiple completely different fix strategies in a disorderly manner.\n\nChecked the ManyRelatedManager's query attribute (failed).\n\nChecked the related model's _default_manager (deviated from the issue).\n\nUsed a try...except block to bypass the error (defensive workaround).\n\nModified the model definition by adding a new base_manager (altered the problem itself).\n\nModified the model definition to use a through table (completely changed the problem scenario).\n\nAnalysis: These disorderly attempts indicate that after the first logical approach failed, the agent did not deeply analyze the reason for the failure, but instead began to 'collide' randomly, lacking a systematic problem-solving method."
+      }
+    ]
+  },
+  "django__django-17084": {
+    "16": [
+      {
+        "id": "f97f16be-e6ea-47d3-bef2-95b1dccaceaa",
+        "action_index": 16,
+        "category": "context_forgetting",
+        "reason": "The agent initially knew that the target error was 'GroupingError'. However, after multiple environment setup failures, it encountered an 'OperationalError' and forgot the original target. It then treated this new, unrelated error as the target."
+      },
+      {
+        "id": "dd97e6f2-f3ad-44de-841e-4d1079c87f1e",
+        "action_index": 16,
+        "category": "error_stack_trace",
+        "reason": "The agent's fix strategy was entirely based on a superficial understanding of the error message and failed to deeply analyze its root cause.\nThe core mistake was believing that Django should proactively check and forbid such aggregation operations before generating SQL, i.e., by raising a Python-level FieldError to block invalid queries. As a result, all its fix attempts (e.g., steps 20, 40, 51, 59, etc.) focused on adding validation logic inside the Aggregate class, trying to detect and raise an error early.\nHowever, the correct fix was not to forbid the operation, but to change the way SQL was generated to bypass the database limitation. The proper solution was in django/db/models/sql/query.py: when detecting that an aggregate function references a window function annotation, the entire query should be constructed as a subquery, and then the final aggregation executed in the outer query. This way, the generated SQL is valid.\nBecause the agent relied only on the literal information from the error stack, it mistakenly classified the problem as 'missing validation' rather than 'flawed query construction strategy,' causing it to target the wrong file and direction from the very beginning."
+      }
+    ],
+    "12": [
+      {
+        "id": "4bd84fce-09f3-4e4f-b706-b4ad94b86932",
+        "action_index": 12,
+        "category": "reproduction_script_failure",
+        "reason": "The agent encountered significant difficulties in setting up and running the reproduction environment, consuming a large number of ineffective iterations. More than half of the fix steps (over 30 out of about 50) were spent addressing issues with the environment and the reproduction script itself. This severely interfered with its ability to fix the core logic and caused it to wander repeatedly down the wrong path."
+      }
+    ],
+    "65": [
+      {
+        "id": "dd53f9b7-0d2d-48d3-90e7-86d25f0d1a80",
+        "action_index": 65,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent did not understand that when handling complex queries (such as aggregations on annotations), Django uses a subquery (Subquery) encapsulation strategy. It was unaware that the related decision logic resides in the get_aggregation method of django/db/models/sql/query.py. This method is the core of building aggregation queries and is responsible for deciding whether the current query needs to be processed as a subquery. All of the agent's fix attempts revolved around the Aggregate class in aggregates.py."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-14623": {
+    "7": [
+      {
+        "id": "fcea17a2-cd51-4b28-b135-eeeaa667e9a3",
+        "action_index": 7,
+        "category": "insufficient_verification_capability",
+        "reason": "The expected result of the bug was a visual axis inversion. The agent executed the verification script, but it could only determine whether the script ran without errors. It could not, like a human, observe the generated chart to confirm whether the axis was actually inverted. Since the script did not raise any errors, the agent mistakenly assumed the issue had been fixed."
+      }
+    ],
+    "8": [
+      {
+        "id": "d297d310-1f9d-4ee1-866c-4997aa8f26ab",
+        "action_index": 8,
+        "category": "algorithmic_implementation",
+        "reason": "Even if the agent's fix strategy (where to make the modification) was correct, its specific code implementation logic was completely wrong and even had the opposite effect."
+      }
+    ],
+    "6": [
+      {
+        "id": "873b3f26-1c1e-45ca-b256-dbdff516b1d5",
+        "action_index": 6,
+        "category": "component_coordination",
+        "reason": "The agent mistakenly placed the entire fix logic inside the limit_range_for_scale function in the scale.py file, which it believed to be the root cause. The agent assumed that the limit_range_for_scale function should be responsible for two things: (1) clipping invalid values (such as negatives or zeros) into valid ones; and (2) maintaining (or restoring) the axis inversion state."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-20488": {
+    "5": [
+      {
+        "id": "a91643e9-7ec6-4707-ab64-7a3ca8006851",
+        "action_index": 5,
+        "category": "error_stack_trace",
+        "reason": "The agent literally followed the error stack trace provided in the problem description, which pointed to the line 'raise ValueError(\\\"Invalid vmin or vmax\\\")' in 'lib/matplotlib/color.py'. Throughout the process, the agent's analysis and modifications (Actions 2, 9, 10) were limited to this file. It did not investigate the call stack to determine the source of the invalid values ('vmin'/'vmax' being converted to infinity). As a result, it attempted to fix the issue by making 'LogNorm' more robust against invalid input, rather than preventing invalid input from being passed by the caller in 'lib/matplotlib/image.py', where the true fix should have been made."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-21568": {
+    "19": [
+      {
+        "id": "9562e39a-ffd1-4832-8c2b-084d70dfad69",
+        "action_index": 19,
+        "category": "keywords_location",
+        "reason": "The agent's localization to 'DateFormatter.__call__' seems to have been based on a superficial match between the function name and the problem keywords (\\\"Datetime\\\", \\\"format\\\", \\\"usetex\\\"). It did not perform sufficiently deep code analysis to trace the problem back to the wrapper where TeX-specific string substitution was actually needed. This led it to apply an incomplete fix in the wrong location."
+      }
+    ],
+    "11": [
+      {
+        "id": "6da5f437-a67c-4798-a612-38263cbebcd1",
+        "action_index": 11,
+        "category": "insufficient_verification_capability",
+        "reason": "This error was a visual defect related to incorrect text spacing in the output image. The agent ran multiple scripts to verify its fix but only checked for their successful execution and the creation of the '.png' file. It never attempted to inspect the visual content of the generated image to confirm whether the spacing issue was actually resolved. The verification target was 'script execution' rather than 'correct visual output'."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-22865": {
+    "5": [
+      {
+        "id": "5134a61d-61ce-4bbd-b9dd-f5987641b5c5",
+        "action_index": 5,
+        "category": "boundary_handling",
+        "reason": "The agent failed to fully understand the specific meanings of different 'extend' values and their corresponding drawing requirements, and created an oversimplified conditional check. The correct fix should have used the existing helper methods _extend_lower() and _extend_upper() in the class to accurately determine whether each end required drawing an edge line, rather than applying a one-size-fits-all approach to all extension types."
+      }
+    ],
+    "10": [
+      {
+        "id": "6d4bca7e-94d2-4f17-bb15-edd5ccf52231",
+        "action_index": 10,
+        "category": "insufficient_verification_capability",
+        "reason": "This issue was a visual error, meaning that verification required checking the output image. In Action 11, after running the corrected script without traceback, the agent assumed its fix was correct. However, it lacked the ability to visually inspect the generated 'colorbar_edge_test.png' file. It merely relied on the absence of runtime errors, which was insufficient to confirm that the visual defect had been resolved."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-22871": {
+    "5": [
+      {
+        "id": "3a4ca3aa-3b4b-4bf7-9d1b-30e11656548c",
+        "action_index": 5,
+        "category": "control_flow",
+        "reason": "The agent replaced the original condition 'if level < 2:' with 'if level == 0:'. Although this fixed the reported bug (where 'level' was often 1 and the offset was now displayed correctly), the logic was flawed. The new condition was too simplistic to account for cases where the year was already shown in the tick labels (e.g., when the date range included January). In such cases, the agent's fix redundantly displayed the year in the offset, which was not the expected behavior. The ground truth patch included a more nuanced check ('np.any(unique == 1)') to avoid this redundancy."
+      }
+    ],
+    "7": [
+      {
+        "id": "cec9c41d-78ed-4119-b0e6-9308ce743b31",
+        "action_index": 7,
+        "category": "insufficient_verification_capability",
+        "reason": "The agent's verification process was limited to using 'ls -l' to check whether the generated plot image existed. The issue described was a visual error in the plot output. By only checking for the creation of the image file, the agent could not verify the actual plot content to confirm whether the year offset was correctly displayed. The verification target (file existence) deviated from the actual verification requirement (correct plot rendering)."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-23476": {
+    "7": [
+      {
+        "id": "50600179-1a02-49f3-a875-4a4ede298afb",
+        "action_index": 7,
+        "category": "error_stack_trace",
+        "reason": "The stack trace for this issue pointed to an 'OverflowError' occurring in 'Figure.__setstate__' during the 'pickle.load(blob)' call. The agent literally followed this trace and attempted to apply fixes within '__setstate__'. This approach failed to identify the root cause, which was that the incorrect DPI value originated from an issue in '__getstate__'."
+      }
+    ],
+    "2": [
+      {
+        "id": "6fb64a26-2b41-4589-ad9e-e1d8aa9223a8",
+        "action_index": 2,
+        "category": "insufficient_verification_capability",
+        "reason": "The issue was explicitly described as occurring on an M1 MacBook with the 'MacOSX' backend. The agent ran using the 'agg' backend in a Linux environment, and therefore could not reproduce the error. This represented a fundamental limitation of its verification capability, as it could not create the conditions necessary to trigger or validate the bug fix."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-24570": {
+    "4": [
+      {
+        "id": "1170e864-f12d-4adb-ab4a-c658f72b0523",
+        "action_index": 4,
+        "category": "insufficient_verification_capability",
+        "reason": "The agent created and ran a verification script using 'matplotlib.pyplot.show()'. This function opens a GUI window and blocks execution until it is closed. Since the agent lacked the ability to interact with GUI elements, it could not verify the visual output or even confirm that the script completed without errors. Execution hung, leaving the agent with no meaningful feedback."
+      }
+    ],
+    "5": [
+      {
+        "id": "893bdd50-17b9-45d6-9a3e-60649bdbf0c6",
+        "action_index": 5,
+        "category": "algorithmic_implementation",
+        "reason": "The agent designed an incorrect fix. Instead of swapping the 'top' and 'bottom' alignment logic as in the ground truth, it modified the input data passed to the alignment function ('hd._x_list = [(h, h)...]' in 'HPacker'). This change was based on a misunderstanding of the coordinate system and a misinterpretation of similar code in the 'VPacker' class. The agent's fix attempted to solve the problem with the wrong algorithm rather than correcting the actual inverted logic."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-24870": {
+    "6": [
+      {
+        "id": "de02cf3e-b049-4f82-9fec-b89bb6978532",
+        "action_index": 6,
+        "category": "insufficient_verification_capability",
+        "reason": "The agent correctly ran its reproduction and edge-case scripts, observed that they did not crash (Action 7), and that they produced output files (Action 8). It interpreted this as success. However, the task required a change in the visual output of the plot. The agent lacked the ability to inspect the generated images to confirm that the number of contours had actually changed as expected."
+      }
+    ],
+    "8": [
+      {
+        "id": "99b59099-abf5-4292-9591-f9cbdfe4bdab",
+        "action_index": 8,
+        "category": "component_coordination",
+        "reason": "The agent failed to recognize that the contour functionality in Matplotlib is implemented across multiple related classes and modules. The correct fix required not only modifying QuadContourSet (in lib/matplotlib/contour.py) but also applying the same logic changes to TriContourSet (in lib/matplotlib/tri/_tricontour.py), which handles triangulated mesh data."
+      }
+    ]
+  },
+  "matplotlib__matplotlib-25332": {
+    "10": [
+      {
+        "id": "6a1c5dc0-00dd-44a3-8f01-18f25bbb0172",
+        "action_index": 10,
+        "category": "evasive_repair",
+        "reason": "The agent correctly identified that the issue originated in the align_labels() method and indirectly inferred that weak references in the cbook.Grouper() object caused the pickle serialization failure. However, instead of fixing the root cause—making the Grouper class itself support serialization—the agent adopted a workaround. It modified the higher-level Figure class so that during serialization (__getstate__), the Grouper object was simply discarded, and during deserialization (__setstate__), a new Grouper object was recreated and align_labels() was called to try to restore the state. This approach bypassed the TypeError and allowed the agent's verification script to run successfully, but it did not actually preserve and restore the internal state of the Grouper object. The correct fix would have been to implement __getstate__ and __setstate__ methods in the Grouper class within cbook.py, enabling it to properly handle its weak references and thus support serialization."
+      }
+    ]
+  },
+  "mwaskom__seaborn-3069": {
+    "4": [
+      {
+        "id": "6b9e7dfb-cf44-4937-850a-9ea00c5e9762",
+        "action_index": 4,
+        "category": "component_coordination",
+        "reason": "The agent's fix disrupted the coordination between these components. It attempted to manipulate a real Matplotlib axis during the Scale setup stage, at a point when the axis might not yet exist or be complete, which later caused an AttributeError due to PseudoAxis. The correct approach (as shown in the final fix) was to perform the check in the Plotter._finalize_figure method—after all axes had been established and data plotted—then determine whether the axis's Scale was Nominal and apply the corresponding style."
+      }
+    ],
+    "16": [
+      {
+        "id": "84010bb0-b315-4bf6-827f-ef7c5aebd689",
+        "action_index": 16,
+        "category": "verification_weakening",
+        "reason": "The agent initially created a test script that programmatically checked grid visibility ('test_nominal_scale_grid.py' in Action 13). Due to the 'PseudoAxis' error, this test failed. After applying a workaround, the agent did not rerun the grid-checking validation but instead created a new, weaker test ('test_nominal_scale_final.py' in Action 17), which completely omitted the programmatic check. This new script only generated a plot, effectively weakening the validation from a specific check to a simple 'does it run without crashing' check."
+      }
+    ],
+    "11": [
+      {
+        "id": "51e27d22-69f3-43d2-836a-d6db4a3db13f",
+        "action_index": 11,
+        "category": "insufficient_verification_capability",
+        "reason": "The issue described was a visual problem (axis range, grid lines, and y-axis direction). Although the agent's verification script could generate an image, the agent itself could not 'see' and determine whether the generated image matched the expected visual effect. It mistakenly equated 'the program did not crash' with 'the fix was successful,' without checking specific attributes such as the axis limits and the visibility state of grid lines to assert the correctness of the fix. As a result, it wrongly assumed that an incomplete and architecturally flawed fix was successful."
+      }
+    ],
+    "14": [
+      {
+        "id": "d20116db-ab26-4904-a58e-f5d030c31a68",
+        "action_index": 14,
+        "category": "evasive_repair",
+        "reason": "After encountering the error 'PseudoAxis' object has no attribute 'grid', the agent did not reconsider the fundamental problem in its fix strategy but instead added a conditional check to bypass the error."
+      }
+    ]
+  },
+  "psf__requests-6028": {
+    "2": [
+      {
+        "id": "267c0cba-e23a-4de5-adb1-8568e838d9c0",
+        "action_index": 2,
+        "category": "keywords_location",
+        "reason": "The agent's investigation focused on files whose names directly matched the keywords in the problem description, such as \\\"proxy\\\" and \\\"authentication\\\". It examined 'requests/auth.py' and 'requests/adapters.py' (Action 3), and eventually concluded that the issue was in the 'proxy_headers' method of 'adapters.py' (Action 5)."
+      }
+    ],
+    "5": [
+      {
+        "id": "873ee7c3-9f2c-4835-a8d2-838df0192134",
+        "action_index": 5,
+        "category": "reproduction_output_misreading",
+        "reason": "The correct judgment should have been: any non-200 response or connection exception indicates a failed verification, unless the error is expected and unrelated to the fix target as a known environment issue. In this case, the agent mistakenly interpreted a failure state ('Connection refused') as evidence of a successful fix, thereby prematurely terminating the debugging process."
+      }
+    ],
+    "4": [
+      {
+        "id": "39280f1e-dea5-497a-927f-a008321fb4bc",
+        "action_index": 4,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The fix proposed by the agent contained technical flaws stemming from its insufficient understanding of the HTTP protocol. It confused the Proxy-Authorization header used for proxy server authentication with the Authorization header used for target server authentication."
+      }
+    ]
+  },
+  "pydata__xarray-3095": {
+    "11": [
+      {
+        "id": "29fa3bbc-967b-4a39-9736-98d1319734ba",
+        "action_index": 11,
+        "category": "component_coordination",
+        "reason": "The agent correctly identified that 'IndexVariable.copy' and 'PandasIndexAdapter' were involved. However, instead of implementing the 'copy' method on 'PandasIndexAdapter' and having 'IndexVariable' call it (the ground truth approach), it attempted to fix the issue externally. It modified the 'copy' method of both 'PandasIndexAdapter' and 'IndexVariable' to pass dtype during re-instantiation. This amounted to trying to fix the caller ('IndexVariable') without properly modifying the callee ('PandasIndexAdapter'), failing to establish a robust 'copy' protocol between them."
+      }
+    ],
+    "6": [
+      {
+        "id": "af91ade9-4ce5-4028-89fc-736042c9bad3",
+        "action_index": 6,
+        "category": "inheritance",
+        "reason": "When attempting to fix the issue in the subclass (IndexVariable), the agent mistakenly modified the overridden method (copy) in the parent class (Variable), ignoring the inheritance relationship. As a result, its fix code was never executed. The problematic coordinate 'x' was an IndexVariable object, which is a subclass of Variable. The IndexVariable class **overrides** the copy method. Therefore, when ds['x'].copy(deep=True) was called, the logic in IndexVariable.copy was executed, not that of the base class Variable.copy. Although the agent's first modification was logically reasonable, it was ineffective because it overlooked inheritance and method overriding, meaning the modified code was never invoked."
+      }
+    ]
+  },
+  "pydata__xarray-4094": {
+    "18": [
+      {
+        "id": "df81fcd0-7f24-4a88-be40-a88c6ac770c1",
+        "action_index": 18,
+        "category": "evasive_repair",
+        "reason": "The agent's final working solution caught 'MergeError' and retried the operation using a different code path with 'compat=\\\"override\\\"'. This resolved the symptom (merge conflict) by forcing an override."
+      }
+    ],
+    "19": [
+      {
+        "id": "0b7881fe-a23c-41de-a841-cf66cf6fb9e9",
+        "action_index": 19,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent made a critical mistake during the verification stage. Although its second fix attempt (Turn 20) successfully eliminated the MergeError exception, it did not carefully check whether the generated unstacked_dataset was fully identical to the original data. The PR description explicitly required 'A working roundtrip,' meaning that the final output should match the original input. The agent incorrectly judged the fix as successful merely because the program did not crash, which was a misinterpretation of the verification result."
+      }
+    ]
+  },
+  "pydata__xarray-4687": {
+    "21": [
+      {
+        "id": "cb160d58-608f-4d04-954b-73ed238002b0",
+        "action_index": 21,
+        "category": "specific_case_overfitting",
+        "reason": "The agent attempted to solve the problem by adding special-case logic in a general utility function. In Action 22, it modified 'apply_variable' to check 'if func.__name__ == \"where\"', overfitting the fix to a specific function name instead of creating a general solution. In Action 46, it tried another overfitted solution by checking 'hasattr(cond, \"_obj\")' on the 'cond' object, which is a fragile way of detecting whether it was the result of a comparison. These solutions lacked generality."
+      }
+    ],
+    "9": [
+      {
+        "id": "ea3339cf-6027-419e-8256-9af06571c4b0",
+        "action_index": 9,
+        "category": "blindly_strategy_switching",
+        "reason": "Throughout the fix process, the agent exhibited clear strategic confusion, jumping disorderly between different repair approaches without systematic problem diagnosis or reasoning. Characteristics: trying different methods haphazardly, lacking systematic thinking. Error snippet: The agent's iteration path illustrates this confusion: 1. Turn 7: simply set keep_attrs=True in the where function. 2. Turn 10: shifted to fixing a dtype issue by modifying duck_array_ops.py. 3. Turn 11: returned to computation.py to manually extract and update attrs. 4. Turn 22: dug into apply_variable_ufunc to add special-case logic for the where function. 5. Turn 34: completely changed strategy, attempting to add a new source_attrs public API parameter for the where function and propagate it through to apply_ufunc. 6. Turn 46: changed strategy again, attempting to guess based on the internal attribute _obj."
+      }
+    ]
+  },
+  "pydata__xarray-6599": {
+    "7": [
+      {
+        "id": "71b5238c-ab51-4de2-8fa8-ed7f2330688d",
+        "action_index": 7,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent had an insufficient understanding of how numpy handles timedelta64. It did not know that a timedelta64 array can be safely converted to floats for mathematical operations using the .astype(float) method. Lacking this key domain knowledge, the agent was forced to invent complex and incorrect alternatives, such as calling datetime_to_numeric and manually handling units and offsets."
+      }
+    ],
+    "11": [
+      {
+        "id": "71a923f8-4dfa-4210-a7ce-f32d4189124a",
+        "action_index": 11,
+        "category": "evasive_repair",
+        "reason": "This was the agent's most fundamental strategic flaw. It observed that after converting timedelta64 to float, the numbers were large (e.g., 10e9), and assumed that the 'large numbers' themselves were the problem. It then tried various ways to 'eliminate' these large numbers rather than fixing the actual computation process that caused the overflow. From unit conversions (ns -> s -> m -> h) to normalization, it consistently avoided addressing the root issue."
+      }
+    ],
+    "13": [
+      {
+        "id": "3f230664-648a-48c3-9174-eb401e3cebed",
+        "action_index": 13,
+        "category": "specific_case_overfitting",
+        "reason": "In its attempts, the agent introduced a normalization strategy, trying to map the input timedelta values to the [0, 1] or [-1, 1] range. This strategy was designed based on the input range of the current example and lacked generality. The polyval function should be able to handle inputs of any numerical range, rather than forcing all inputs to be normalized. This fix made unwarranted assumptions about the distribution of the input. If the input consisted of only a single time point, or was already a small-range float, this logic could fail or cause unexpected behavior."
+      }
+    ]
+  },
+  "pydata__xarray-6721": {
+    "3": [
+      {
+        "id": "164f257e-ccc3-43fc-8aa3-a8e16788eec2",
+        "action_index": 3,
+        "category": "redundant_erroneous_implementation",
+        "reason": "The agent's initial fix was a complete rewrite of the 'get_chunksize' function. It introduced new logic to first check the 'encoding' attribute, which was a much more complex change than the simple idiom 'v._data' used in the ground truth. This new implementation was not only unnecessary but also incorrect, as it introduced a new error related to inconsistent chunks, which the agent then spent the rest of the time trying to resolve."
+      }
+    ],
+    "18": [
+      {
+        "id": "12b9cf7b-add5-46d4-b5c8-eec3e4537cff",
+        "action_index": 18,
+        "category": "insufficient_domain_knowledge",
+        "reason": "When attempting to fix the 'inconsistent chunks' error, the agent tried using the logic 'if v.name in v._dataset.coords:' to filter out coordinate variables. This operation failed and returned an 'AttributeError' because 'Variable' objects do not have a '_dataset' attribute. This revealed a clear logical mistake in the implementation, assuming the existence of an attribute where it did not exist."
+      }
+    ],
+    "7": [
+      {
+        "id": "c54994f8-b224-4535-baac-168898857064",
+        "action_index": 7,
+        "category": "reproduction_output_misreading",
+        "reason": "In the test script, the agent checked whether the data was loaded by using var.data.chunks. This also triggered access to the data attribute, thereby loading the data. • This made the test itself misleading. Even if the get_chunksizes logic was correct, as long as the test script included var.data.chunks, the data would be loaded and the agent would mistakenly believe the fix had failed. •"
+      }
+    ]
+  },
+  "pydata__xarray-6744": {
+    "5": [
+      {
+        "id": "d2afb481-a685-441e-88f0-31d894dae8d2",
+        "action_index": 5,
+        "category": "algorithmic_implementation",
+        "reason": "The algorithm the agent implemented to fix the center=True logic was itself flawed. It attempted to manually handle boundary cases (where the window could not fully contain the data) by adding if/else checks within the loop to create windows containing NaNs. This approach was not only overly complex but also produced incorrect logic for cases such as even window sizes, ultimately resulting in outcomes that did not match the correct implementation."
+      }
+    ],
+    "8": [
+      {
+        "id": "92d79c49-a4da-4486-afbc-3b6085f8bb47",
+        "action_index": 8,
+        "category": "reproduction_output_misreading",
+        "reason": "After running its own verification script test_edge_cases.py, the agent failed to correctly interpret the output. The test script's output clearly showed that the agent's fix was incorrect, but the agent mistakenly judged the fix as successful."
+      }
+    ]
+  },
+  "pydata__xarray-6938": {
+    "10": [
+      {
+        "id": "d9d5d6d9-b76a-4cc5-897c-fe369c1088a4",
+        "action_index": 10,
+        "category": "context_forgetting",
+        "reason": "The agent's first fix attempt was to add copy(deep=True) in the as_variable function of xarray/core/variable.py. When this attempt failed (as confirmed by rerunning the reproduction script), the agent did not revert the change but instead proceeded with a second attempt (the workaround fix mentioned above). In the end, the submitted diff still contained this invalid modification that should have been discarded. This indicates that during iteration, the agent forgot its previous actions and results, failing to keep the codebase clean."
+      }
+    ],
+    "9": [
+      {
+        "id": "d0a6eb38-f420-424f-a83b-f70ea7645087",
+        "action_index": 9,
+        "category": "evasive_repair",
+        "reason": "By performing a deep copy of each variable v at the start of the loop (v = v.copy(deep=True)), the agent ensured that all subsequent modifications to v occurred on a copy, thereby protecting the original variables in the Dataset from being altered. While this method allowed the test to pass, it was an overly defensive 'one-size-fits-all' approach with lower performance, and it did not fix the real problem in the IndexVariable.to_index_variable function."
+      }
+    ]
+  },
+  "pydata__xarray-6992": {
+    "7": [
+      {
+        "id": "a5dcba11-d8fa-4dd3-ba4f-39cc6b77e711",
+        "action_index": 7,
+        "category": "error_stack_trace",
+        "reason": "The agent traced the 'ValueError' to the __len__ method, which was the immediate crash location. It then focused all its efforts on modifying this method to prevent the crash, without investigating the calling context set_index and reset_index (from the provided example) to understand the cause of the invalid state. This demonstrated a superficial analysis based on the direct error location rather than the underlying logical flaw."
+      },
+      {
+        "id": "c00aaf48-26bb-421f-bb0f-ec22691d8e76",
+        "action_index": 7,
+        "category": "evasive_repair",
+        "reason": "The agent implemented a workaround fix by changing how the length was calculated in __len__. This change prevented the 'ValueError' by ensuring that the method could not return a negative number."
+      }
+    ]
+  },
+  "pydata__xarray-7229": {
+    "7": [
+      {
+        "id": "4e9f3103-d493-4a38-8579-dc5e53397fe7",
+        "action_index": 7,
+        "category": "specific_case_overfitting",
+        "reason": "The agent's second fix attempt involved modifying the 'build_output_coords_and_indexes' function to hardcode 'combine_attrs = \"override\"'. While this allowed the provided minimal example to pass (as shown in Action 9), it was an overly broad solution. This function is a general utility used by apply_ufunc, and changing its behavior to fix an issue specific to xr.where overfit the solution to a particular test case."
+      }
+    ],
+    "10": [
+      {
+        "id": "88cb6c69-946f-4695-9ab9-d87ec27daa1c",
+        "action_index": 10,
+        "category": "context_forgetting",
+        "reason": "The agent's final submission included the code from Action 6, which had already been proven invalid in Action 7. This part of the implementation was both incorrect and redundant."
+      }
+    ],
+    "5": [
+      {
+        "id": "350cf4a9-77c4-41da-aded-29c35ab258af",
+        "action_index": 5,
+        "category": "keywords_location",
+        "reason": "The agent's localization was inaccurate. Although it correctly narrowed the scope to the computation.py file, it incorrectly focused on the generic apply_dataarray_vfunc and build_output_coords_and_indexes functions. Likely relying on keywords such as 'attributes' and 'coordinates,' it directly targeted low-level functions handling general logic. However, the minimal reproduction code in the issue explicitly used xr.where(...), which should have been the primary entry point for investigation. The correct fix was specifically to adjust the handling of keep_attrs=True inside the where function, not to modify generic low-level functions. The agent failed to recognize the special nature of the where function, leading to inaccurate localization and ultimately the wrong fix strategy."
+      }
+    ]
+  },
+  "pylint-dev__pylint-4604": {
+    "6": [
+      {
+        "id": "39c7f8c1-e74b-4916-9baf-cdb9875b3320",
+        "action_index": 6,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent demonstrated a lack of domain knowledge about how the 'astroid' library handles and represents type annotations. Initially (Action 7), it incorrectly assumed that type annotations were simple 'Const' nodes in the AST. After realizing this was wrong, instead of looking for the correct AST attribute (such as 'node.type_annotation'), it completely abandoned the AST-based approach (Action 11) in favor of raw file I/O and string parsing. This showed that it did not know the correct way to access this information through the library's API."
+      }
+    ],
+    "16": [
+      {
+        "id": "f0f89577-09a5-4ae2-bc3a-cbeb96668b18",
+        "action_index": 16,
+        "category": "specific_case_overfitting",
+        "reason": "Because the agent adopted a fragile strategy based on string matching, the approach failed when encountering slightly more complex cases (such as after importing typing and using List). Instead of reflecting on the fundamental flaw in its strategy, the agent continued to 'patch' the original faulty approach, attempting to cover new test cases with increasingly complex string rules. This caused the solution to become more and more complicated and unreliable."
+      }
+    ],
+    "10": [
+      {
+        "id": "76cccdc2-1d2b-4f41-aedf-dae59283b5fe",
+        "action_index": 10,
+        "category": "evasive_repair",
+        "reason": "The agent failed to identify the function in astroid that actually handles type annotations and records names (i.e., _store_type_annotation_node). Instead, it chose a completely wrong path: in the visit_assign method, it reopened the source file each time, read the corresponding line of code, and manually used string matching to check for # type: comments. This completely bypassed pylint's existing AST-based type analysis framework, attempting to solve the problem with an external and fragile text-processing approach."
+      }
+    ]
+  },
+  "pylint-dev__pylint-4661": {
+    "7": [
+      {
+        "id": "61017be9-2bf2-4721-9001-21fde52425d9",
+        "action_index": 7,
+        "category": "redundant_erroneous_implementation",
+        "reason": "The ground truth patch used the 'appdirs' library, which is the standard cross-platform way to handle the XDG directory specification. In contrast, the agent chose to manually implement the logic for locating XDG data directories. This was redundant, as it reimplemented functionality already provided by an existing library."
+      },
+      {
+        "id": "53bfb8ba-ac21-4a4c-930b-6062dd70e388",
+        "action_index": 7,
+        "category": "component_coordination",
+        "reason": "The agent's final patch was missing two key components that were present in the ground truth and coordinated with the main logic change:\n1. Migration warning: The ground truth patch included detection of the old `~/.pylint.d` directory and printed a warning to inform users that it could safely be removed. The agent's fix ignored this important user experience improvement.\n2. **Configuration updates:** The ground truth solution added 'appdirs' as a dependency and updated the 'isort' and 'mypy' configurations in 'setup.cfg'. Because the agent manually implemented the path logic, it failed to identify and perform these necessary coordination changes for project configuration and dependency management."
+      }
+    ]
+  },
+  "pylint-dev__pylint-4970": {
+    "8": [
+      {
+        "id": "91d35077-7ac6-4ad3-8fa1-656f63c2e6fa",
+        "action_index": 8,
+        "category": "evasive_repair",
+        "reason": "The core requirement of the issue was that when min-similarity-lines is set to 0, the duplicate code check should be completely disabled. However, the line of code the agent added in the Similar class constructor (__init__) did not implement this 'disable' logic. Instead, it treated 0 as an invalid or undesired input and applied a defensive measure by replacing it with a default value (DEFAULT_MIN_SIMILARITY_LINE, i.e., 4). This was a workaround fix, as it did not fundamentally solve the problem (i.e., changing program behavior based on user input 0), but rather bypassed it by altering the input value. This fix was completely contrary to the user’s expectation: users wanted 0 to disable the check, but the agent’s modification instead forced the check to remain enabled with a default configuration. Although the agent later added the correct fix logic in the SimilarChecker.close method (checking whether the config value was 0 and returning early), its final submission still contained this earlier flawed workaround. This indicates that it failed to fully understand the core intent of the user."
+      }
+    ]
+  },
+  "pylint-dev__pylint-6386": {
+    "6": [
+      {
+        "id": "35e6a77e-a668-4ebd-b340-9d8f0dcc3240",
+        "action_index": 6,
+        "category": "component_coordination",
+        "reason": "The agent found the definition of the 'verbose' option and noticed that it used a custom '_DoNothingAction'. This should have been a signal that a non-standard handling mechanism was involved. However, the agent did not investigate how this action coordinated with other parts of the system. In Action 10, it changed the option definition in isolation, without realizing that the change also needed to be coordinated with the preprocessing logic in 'pylint/config/utils.py'."
+      }
+    ]
+  },
+  "pytest-dev__pytest-6197": {
+    "24": [
+      {
+        "id": "4611a3a6-7ef7-4ae1-8727-9154bdc491f5",
+        "action_index": 24,
+        "category": "reproduction_output_misreading",
+        "reason": "When the agent finally produced a code version that did not raise an import error, the test run result was 'collected 0 items'. The agent mistakenly took this as success, saying: 'Great! The test passed, but no __init__.py files were collected.' It failed to understand that its patch had completely broken test collection, which was also a failure state."
+      }
+    ],
+    "11": [
+      {
+        "id": "4893bfb9-85a0-4b83-bbe2-c976e523d0c3",
+        "action_index": 11,
+        "category": "context_forgetting",
+        "reason": "The agent repeatedly failed to edit the 'src/_pytest/python.py' file correctly. Instead of performing the targeted modification, it overwrote the entire file with a small, incomplete code snippet. This operation deleted much of the original file content, including fundamental class definitions, which led to 'NameError' and 'ImportError' in subsequent verification steps (Actions 17, 22). This indicated a basic error in handling file content during the editing process."
+      }
+    ],
+    "22": [
+      {
+        "id": "fc27bf39-1b9a-4f1c-a074-7b3809054e4d",
+        "action_index": 22,
+        "category": "component_coordination",
+        "reason": "The agent's fix only focused on adding a conditional check for __init__.py files, completely ignoring the necessary related changes in 'PyobjMixin'. This omission broke the logical coordination between the file collection logic and the object mounting/checking logic."
+      }
+    ]
+  },
+  "pytest-dev__pytest-7324": {
+    "12": [
+      {
+        "id": "d2f09470-2a4c-4f66-9b40-6b3cbbbabe71",
+        "action_index": 12,
+        "category": "evasive_repair",
+        "reason": "Although the fix was applied in the wrong place, the chosen strategy was a workaround. The agent's solution was to add 'if/elif' statements for the special-case strings \\\"True\\\", \\\"False\\\", and \\\"None\\\", and directly return their boolean/None equivalents, thereby avoiding the 'compile' call that caused the crash. This bypassed the issue for those specific inputs."
+      },
+      {
+        "id": "bebb838c-28a8-4f0f-b77a-6af782351e44",
+        "action_index": 12,
+        "category": "keywords_location",
+        "reason": "In its initial analysis, the agent correctly associated the issue with Expression.compile(\"False\"). However, when searching the codebase for the 'compile' keyword, it found the cached_eval function in _pytest/mark/evaluate.py, which internally called _pytest._code.compile. The agent mistakenly assumed this was the root cause and attempted to fix it there. In reality, the root cause was in pytest's custom marker expression parsing layer (_pytest/mark/expression.py), not in the general code compilation and evaluation utility (_pytest/mark/evaluate.py). The agent only looked at the surface-level compile call without fully understanding the processing flow of pytest marker expressions."
+      }
+    ],
+    "6": [
+      {
+        "id": "cb0fde5f-68f3-4667-a6c2-c82fdcb6a2f9",
+        "action_index": 6,
+        "category": "reproduction_script_failure",
+        "reason": "The agent repeatedly failed to reproduce the C-level assertion crash described in the issue. All of its reproduction scripts executed without errors. As stated in the issue, the agent did not recognize that the crash was specific to Python 'debug builds,' and its execution environment did not meet this condition. This failure prevented it from observing the actual bug."
+      }
+    ]
+  },
+  "scikit-learn__scikit-learn-10908": {
+    "6": [
+      {
+        "id": "cb773eac-eb8c-4976-a700-725ab576a4e2",
+        "action_index": 6,
+        "category": "component_coordination",
+        "reason": "The PR description stated that when a user provides a vocabulary in __init__, get_feature_names() should work directly without requiring a prior call to fit(). The transform method already implemented this kind of 'lazy validation' or 'just-in-time validation' logic: if vocabulary_ did not exist, it would call _validate_vocabulary() to create it. The agent's mistake was not following this existing pattern, but instead 'eagerly' calling _validate_vocabulary() within the __init__ method to create the vocabulary_ attribute. Although this fix allowed the test case to pass, it altered the core responsibility of __init__ and broke the established coordination with methods like fit() and transform(), making it an intrusive and incorrect fix. The correct solution would have been to mimic the behavior of transform inside get_feature_names: add a check, and if vocabulary_ does not exist, call _validate_vocabulary(). This would have solved the problem while maintaining consistency and coordination within the component's behavior."
+      }
+    ]
+  },
+  "scikit-learn__scikit-learn-12682": {
+    "17": [
+      {
+        "id": "12255ddf-942f-439b-b4e8-6e01f227690c",
+        "action_index": 17,
+        "category": "component_coordination",
+        "reason": "The agent's fix was too narrowly focused on the 'SparseCoder' class. It failed to recognize that other components, such as the 'DictionaryLearning' and 'MiniBatchDictionaryLearning' classes, also call 'sparse_encode' and needed to be updated to pass the new iteration parameter. The ground truth patch correctly modified these dependent classes to maintain logical consistency, but the agent's solution omitted these necessary coordination changes."
+      }
+    ]
+  },
+  "scikit-learn__scikit-learn-25102": {
+    "3": [
+      {
+        "id": "91db22d3-5af8-4adc-bda0-838a1a519535",
+        "action_index": 3,
+        "category": "issue_misleading",
+        "reason": "The agent directly followed the solution suggested in the issue description: \\\"Maybe one could adjust the SetOutput, also allowing dtypes to be preserved. This would mean modifying _SetOutputMixin to add another parameter 'dtypes' to _wrap_in_pandas_container.\\\" After searching the files in Action 4, the agent immediately checked '_set_output.py' (Action 5) and proceeded to implement this exact suggestion (Action 6 and onwards), without investigating whether this was the root cause or if a more robust solution existed."
+      }
+    ]
+  },
+  "scikit-learn__scikit-learn-25747": {
+    "8": [
+      {
+        "id": "14da4f01-ed61-498b-bc6f-71430de28e5f",
+        "action_index": 8,
+        "category": "evasive_repair",
+        "reason": "The agent's modification of the Hstack method in 'pipeline.py' was a classic workaround fix. Instead of addressing the root cause of the DataFrame index mismatch, it implemented a complex solution that forced index alignment by unioning and reindexing. This bypassed the actual bug (which occurred in '_set_output.py') rather than fixing it."
+      }
+    ],
+    "7": [
+      {
+        "id": "3efeebdd-ae78-4be0-8265-b3e06181efc6",
+        "action_index": 7,
+        "category": "error_stack_trace",
+        "reason": "In the early stages of the fix, the agent failed to correctly interpret the error stack. Although the stack clearly pointed to _set_output.py as the direct source of the error, the agent initially attempted to modify the FeatureUnion._hstack method in sklearn/pipeline.py."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-10435": {
+    "4": [
+      {
+        "id": "b99bba90-138c-4f29-998d-a66f84098b4f",
+        "action_index": 4,
+        "category": "data_processing_errors",
+        "reason": "It correctly identified the need to add a '%' character to comment out the newline, but compared to the ground truth, it made two mistakes in string handling:\n1. It failed to adjust the string slice from '[:-14]' to '[:-15]' after the 'rstrip()' call, which was necessary to account for the extra newline character.\n2. It appended '%}}' instead of 'r'%' + CR + '}}', missing the explicit addition of the carriage return ('CR'). This would result in incorrect final LaTeX output."
+      }
+    ],
+    "7": [
+      {
+        "id": "f283e87f-1bed-4237-8e63-a1dbfeb14f39",
+        "action_index": 7,
+        "category": "reproduction_script_failure",
+        "reason": "The agent repeatedly failed to set up the full environment required for verification. Initially, it was unable to create a 'conf.py' file (Action 8). Later, due to environment issues, its attempts to install the necessary 'texlive' dependencies and build the PDF document timed out or failed (Actions 16–19). This prevented it from seeing the visual output of its fix."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-10614": {
+    "8": [
+      {
+        "id": "c8bebe06-cb16-4244-885c-d33bc9442492",
+        "action_index": 8,
+        "category": "insufficient_verification_capability",
+        "reason": "Although the agent's reproduction script successfully built the documentation, it lacked the ability to verify the correctness of the generated output. The error manifested as a broken hyperlink in the final HTML, which required browser simulation or programmatic path resolution to validate. The agent's script only confirmed that the build process completed without errors, without checking whether the output was correct."
+      }
+    ],
+    "7": [
+      {
+        "id": "67a10b62-f756-41e9-8a93-1aca9d9ff7f0",
+        "action_index": 7,
+        "category": "algorithmic_implementation",
+        "reason": "The agent implemented a logically flawed algorithm to fix relative paths. The actual problem was a hardcoded and incorrect '../' prefix. The correct fix was to remove this prefix and let Sphinx's builder handle path resolution. Instead, the agent designed a complex but incorrect new logic to calculate the prefix based on directory depth ('depth = len(self.builder.current_docname.split('/')) - 1; prefix = '../' * depth')."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-10673": {
+    "7": [
+      {
+        "id": "19fd7b57-0f6a-4c9c-80c1-079239b205ac",
+        "action_index": 7,
+        "category": "evasive_repair",
+        "reason": "It attempted to catch the 'KeyError' that occurred when special documents were not found, and then handle them in the 'except' block. In Action 13, it tried filtering the special documents out of the 'includefiles' list to prevent downstream errors. Both approaches avoided the fundamental issue: the system needed to recognize these special documents as valid entries during the parsing stage."
+      }
+    ],
+    "15": [
+      {
+        "id": "959855ce-13ba-4fe3-b4ec-5708d72a52ae",
+        "action_index": 15,
+        "category": "component_coordination",
+        "reason": "The agent's final solution completely omitted the necessary changes in 'sphinx/environment/collectors/toctree.py' and failed to specify how these newly generated documents should be handled by the relevant components."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-11510": {
+    "11": [
+      {
+        "id": "5dfc0eb7-6563-483b-8e28-fe9d73b5bca4",
+        "action_index": 11,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The core flaw in the agent's fix was its insufficient understanding of how the docutils library (the underlying parsing engine of Sphinx) works, particularly the StateMachine. It failed to find the correct API for injecting modified content during the processing of the include directive and instead attempted an invalid approach."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-7454": {
+    "1": [
+      {
+        "id": "2e5a1be6-063a-4a7e-a03b-22f9f9bb605d",
+        "action_index": 1,
+        "category": "keywords_location",
+        "reason": "The agent's exploration and localization were largely guided by the keywords \\\"autodoc\\\" and \\\"typehints\\\" in the problem description. Although it examined several related files, it ultimately decided to modify 'sphinx/ext/autodoc/typehints.py'."
+      }
+    ],
+    "19": [
+      {
+        "id": "4f625209-8846-4418-8a74-54c698647fe4",
+        "action_index": 19,
+        "category": "specific_case_overfitting",
+        "reason": "The agent's implementation strategy was to manually construct and hardcode the final HTML '<a>' tag for the 'None' and 'int' type hints in the 'merge_field_list' function. This fix was not generalizable and would fail for any other types. It was overfitted to the specific types mentioned in the issue and test, instead of leveraging Sphinx's internal cross-referencing mechanism."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-7757": {
+    "18": [
+      {
+        "id": "64d0945f-7606-4100-bb8b-f8678e356005",
+        "action_index": 18,
+        "category": "component_coordination",
+        "reason": "The agent initially identified the component responsible for rendering the signature ('_parse_arglist' in 'python.py'), but failed to recognize that this component was receiving incorrect data from its dependency ('signature.py' originating from '_from_str' in 'inspect.py'). Over the course of 18 actions, it attempted to fix the 'consumer' logic without realizing that the true root cause lay in the 'producer' logic. This demonstrated a failure to understand the logical coordination between the two components."
+      }
+    ],
+    "4": [
+      {
+        "id": "061be071-8254-4a70-936e-0edcc1e4206f",
+        "action_index": 4,
+        "category": "non_progressive_iteration",
+        "reason": "The agent entered a long cycle of 15 actions attempting to fix '_parse_arglist' in 'sphinx/domains/python.py'. Its attempts involved repeatedly shuffling the same logic blocks (creating argument nodes, adding separators, etc.) in slightly different orders. Despite the test script consistently failing in the same way (with default values not appearing), the agent did not change its high-level strategy and instead focused on making minor, ineffective changes to the wrong file."
+      }
+    ],
+    "22": [
+      {
+        "id": "296f76f9-365d-4671-9343-daf08e07750f",
+        "action_index": 22,
+        "category": "algorithmic_implementation",
+        "reason": "It attempted to handle all positional parameters (including positional-only and positional-or-keyword) with a single defaults_offset. However, Python's inspect.Signature internally processes defaults by placing all positional parameters with default values (including posonlyargs and args) into args.defaults. This means that the indexing of args.defaults is relative to all parameters with defaults, not just args.args or posonlyargs."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-8551": {
+    "2": [
+      {
+        "id": "91fc7d99-658a-46cb-89cb-06095f5b424a",
+        "action_index": 2,
+        "category": "referred_code_location",
+        "reason": "The agent's analysis and fix work focused entirely on the find_obj function in sphinx/domains/python.py. This function is where object lookup is ultimately executed and ambiguity warnings are reported, making it the direct manifestation point of the error. • Problem: The agent failed to understand that find_obj relies on the caller to pass in modname and clsname (the module and class context) in order to correctly resolve unqualified names. The root cause was not in find_obj's lookup logic itself, but upstream, where the code creating cross-reference nodes (pending_xref) for :type: and :rtype: fields did not attach this necessary context information. The agent ignored the broader code context and did not trace how information was passed from field parsing through to the final object resolution."
+      }
+    ],
+    "3": [
+      {
+        "id": "827222fa-90f3-4264-8e6e-cea461eac603",
+        "action_index": 3,
+        "category": "component_coordination",
+        "reason": "The agent's fix was one-sided: it only attempted to solve the problem in the resolver (find_obj) while completely ignoring the responsibility of the information providers (TypedField.transform and PyXrefMixin.make_xref). This broke the original collaboration between the two components, forcing the resolver to take on responsibilities that did not belong to it, making the code logic more complex and less robust."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-9230": {
+    "10": [
+      {
+        "id": "55fa842c-9060-425b-b41b-254e8dcaddc2",
+        "action_index": 10,
+        "category": "keywords_location",
+        "reason": "It incorrectly localized the root cause of the problem to the make_field method of the TypedField class. In reality, the root cause was in the DocFieldTransformer.transform method, specifically in the initial splitting of field text (i.e., fieldarg.split(None, 1))."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-9461": {
+    "6": [
+      {
+        "id": "f7713c40-2a90-446b-bbd3-f2b5b550c938",
+        "action_index": 6,
+        "category": "evasive_repair",
+        "reason": "Unlike the ground truth patch, which directly modified the Sphinx source code, the agent created a new file 'patch.py' and attempted to monkey-patch the 'PropertyDocumenter' class at runtime by importing the patch inside 'sphinx/ext/autodoc/__init__.py'. This strategy bypassed a direct integrated fix and instead relied on a less stable runtime modification."
+      }
+    ],
+    "11": [
+      {
+        "id": "cdc69b2d-a1fc-4c9a-9311-4d84cd354144",
+        "action_index": 11,
+        "category": "non_progressive_iteration",
+        "reason": "The agent's debugging process involved repeatedly modifying its patch with minor variations of the same flawed idea (trying different attributes to obtain the docstring). This trial-and-error approach lacked a systematic strategic shift and failed to make meaningful progress toward the correct solution, since all the attempts were based on an incorrect mental model of Python's decorator and descriptor protocol."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-9591": {
+    "6": [
+      {
+        "id": "b607e5dd-faa8-46a2-add9-9a9af5096d35",
+        "action_index": 6,
+        "category": "keywords_location",
+        "reason": "The agent focused its investigation on 'sphinx/ext/autodoc/__init__.py' because the issue explicitly mentioned the 'autodoc' extension. This led it down the wrong path, as the root cause was actually in a different but related file ('sphinx/domains/python.py'), which handles how the Python domain processes attribute signatures."
+      }
+    ],
+    "15": [
+      {
+        "id": "4afb2cee-912b-4d10-ac77-84433be333a3",
+        "action_index": 15,
+        "category": "reproduction_output_misreading",
+        "reason": "The agent inspected the generated HTML (Action 16), which still showed that the attribute's type was not a hyperlink, while other attributes were correctly cross-referenced. Despite the clear evidence of failure in the output, the agent's final analysis mistakenly concluded that the fix was successful and that the cross-referencing was working."
+      }
+    ]
+  },
+  "sphinx-doc__sphinx-9602": {
+    "16": [
+      {
+        "id": "5da4b47a-a8cd-41a1-b967-0ab9e8cb1acd",
+        "action_index": 16,
+        "category": "specific_case_overfitting",
+        "reason": "After its more general fix for string literals failed (Action 16), the agent resorted to overfitting. It explicitly added a check for the literal word \\\"string\\\" ('if s in ('True', 'False', 'None', 'string')'), because that specific word appeared in the error message."
+      }
+    ],
+    "5": [
+      {
+        "id": "2f9a2d46-9857-4ef9-be0e-2e6578aaaabd",
+        "action_index": 5,
+        "category": "error_stack_trace",
+        "reason": "The agent saw the error \\\"py:class reference target not found: True\\\" and incorrectly concluded that the fix should be in the reference resolver ('builtin_resolver'). This was a superficial interpretation of the error message. Instead of investigating *why* 'True' was being treated as a reference, it directly jumped to the function that handles what to do when a reference cannot be found."
+      }
+    ]
+  },
+  "sympy__sympy-13615": {
+    "5": [
+      {
+        "id": "ebdc03ee-f6bf-4efd-b634-ad606233b231",
+        "action_index": 5,
+        "category": "referred_code_location",
+        "reason": "After successfully reproducing the error, the agent asserted, \\\"The problem lies in the FiniteSet class's _complement method,\\\" without providing evidence of tracing the control flow in the code. The flawed logic was actually in the base set's _complement method. The agent's modification of FiniteSet._complement appeared to be based on a simple keyword association between the class name ('FiniteSet') and the operation ('complement')."
+      }
+    ],
+    "7": [
+      {
+        "id": "46e1cfb3-f393-4973-aec2-a47b523ad715",
+        "action_index": 7,
+        "category": "reproduction_output_misreading",
+        "reason": "The output was '{x, y}', which was the same as the failed output in Action 5, clearly indicating that the patch was ineffective. The agent's reasoning process completely ignored this failure signal and continued writing new tests without acknowledging or responding to the fact that the original error still persisted."
+      }
+    ]
+  },
+  "sympy__sympy-13798": {
+    "5": [
+      {
+        "id": "12302435-808c-48b2-8fe1-7c109c01b6af",
+        "action_index": 5,
+        "category": "boundary_handling",
+        "reason": "The codebase already had two different settings, mul_symbol_latex and mul_symbol_latex_numbers, which implied that ordinary multiplication and multiplication between numbers might need to be handled differently in typesetting. The agent noticed these two variables but failed to understand the intent behind handling such edge cases. It simply applied the custom symbol to all scenarios, thereby breaking the robustness of the original design."
+      }
+    ]
+  },
+  "sympy__sympy-13974": {
+    "5": [
+      {
+        "id": "6e6aec8b-72b1-491b-b057-e1255478b91d",
+        "action_index": 5,
+        "category": "algorithmic_implementation",
+        "reason": "This algorithm was fundamentally incorrect because it attempted to solve a problem involving a Pow object within a function that handled Mul objects. The data structure it operated on (a multiplication argument list) did not match the actual input data structure (a power object), causing the algorithm's logic to go completely astray."
+      }
+    ]
+  },
+  "sympy__sympy-14248": {
+    "17": [
+      {
+        "id": "667919c8-1e39-4978-b69d-315be6304ee0",
+        "action_index": 17,
+        "category": "non_progressive_iteration",
+        "reason": "After its initial fix failed, the agent fell into a series of small but ineffective modifications. Although it fixed the NameError and TypeError that it had introduced, the core logic remained incorrect. The test outputs from Actions 25, 27, and 29 were identical to the original erroneous output."
+      }
+    ],
+    "28": [
+      {
+        "id": "6b9fb056-f755-4854-aefd-7f4d4b050cd4",
+        "action_index": 28,
+        "category": "reproduction_output_misreading",
+        "reason": "This was a serious mistake by the agent in handling feedback results. Despite multiple tests (Actions 25, 27, 29) clearly showing that the error still persisted (e.g., output was (-1)*B + (-1)*A*B + A), the agent incorrectly concluded that the problem was resolved and stated, 'The changes look good! We've successfully fixed the printing...'. This reflected a complete misinterpretation of the verification output."
+      }
+    ],
+    "10": [
+      {
+        "id": "62126701-c867-4a20-9662-094322671a7a",
+        "action_index": 10,
+        "category": "component_coordination",
+        "reason": "The problem description involved expressions such as A - A*B - B, which are internally parsed as MatAdd(A, MatMul(-1, A, B), MatMul(-1, B)). The agent correctly identified that the _print_MatAdd method needed to be modified to handle the summation of negative terms. However, it failed to realize that the _print_MatMul methods in str.py and latex.py also needed to be updated to properly handle leading negative coefficients (such as (-1)*B). While the ground truth patch fixed both _print_MatAdd and _print_MatMul, the agent only modified the former, thereby missing part of the symmetric fix."
+      }
+    ],
+    "11": [
+      {
+        "id": "fd852804-e566-4f98-b7a1-af0eddbaf764",
+        "action_index": 11,
+        "category": "algorithmic_implementation",
+        "reason": "The negative sign handling logic implemented by the agent in _print_MatAdd was also flawed. It simply checked _coeff_isneg, but this could not directly determine the sign for terms that were already MatMul objects (such as (-1)*B). Moreover, its implementation in pretty.py introduced a TypeError."
+      }
+    ]
+  },
+  "sympy__sympy-15017": {
+    "2": [
+      {
+        "id": "cc4396da-98e5-4734-96f2-dac761d9aa45",
+        "action_index": 2,
+        "category": "referred_code_location",
+        "reason": "The issue description explicitly stated: 'sympy.tensor.array.NDimArray.__len__ always returns 0 on rank-0 arrays.' The agent followed this description literally, locating the NDimArray class in Action 3 and directly modifying its __len__ method in Action 8. While this approach did fix the symptom mentioned in the description, it failed to identify the root cause—the incorrect calculation of self._loop_size, which occurred in another method (_new) in a different file (dense_ndim_array.py)."
+      }
+    ]
+  },
+  "sympy__sympy-15599": {
+    "4": [
+      {
+        "id": "22d7b3a9-5f7c-4d12-bf12-c79ff4472533",
+        "action_index": 4,
+        "category": "issue_interference",
+        "reason": "The issue description provided a suggested fix, phrased as 'it could be something like this,' along with a diff. The agent implemented this suggested fix exactly in Action 5. However, this fix differed from the more general and robust solution in the ground truth patch. The agent's main mistake was uncritically adopting this incomplete suggested fix instead of analyzing the problem in depth and finding the more correct solution. The suggested code snippet distracted the agent's problem-solving process, leading it to implement a patch that was not ultimately accepted."
+      }
+    ]
+  },
+  "sympy__sympy-15875": {
+    "7": [
+      {
+        "id": "3b6fd8be-dd5a-42d0-af8d-aa9abbc490dc",
+        "action_index": 7,
+        "category": "algorithmic_implementation",
+        "reason": "The agent's fix attempt in Action 8 was logically incomplete. While it was able to separately handle terms that were explicitly real or imaginary, it could not handle composite expressions like (1 + I)**2 that required evaluation. When faced with such expressions, its logic would simply return, effectively giving up on the check. This missing branch caused the main test case to fail, with the verification output being None instead of the expected True (see Action 9)."
+      }
+    ],
+    "9": [
+      {
+        "id": "bbf99f31-600e-4f8d-b38e-bbbee975d964",
+        "action_index": 9,
+        "category": "redundant_erroneous_implementation",
+        "reason": "The agent's final submitted solution was a complete rewrite of the _eval_is_zero method. It introduced an expand() call and used as_real_imag to split the expression into real and imaginary parts. Compared to the ground truth patch, which required only a concise one-line change, this approach was unnecessarily complex. The agent's implementation essentially duplicated simplification logic, whereas _eval_is_zero was originally intended only for quick attribute checks. As a result, the agent's solution made the logic bloated and computationally costly."
+      }
+    ]
+  },
+  "sympy__sympy-16597": {
+    "20": [
+      {
+        "id": "cf43f0f8-d92d-4271-9066-9facf1ce946d",
+        "action_index": 20,
+        "category": "specific_case_overfitting",
+        "reason": "The agent added a hardcoded check in the Symbol constructor: if assumptions.get('even', False) and assumptions.get('infinite', False): raise ValueError(...). This was an overfitted patch targeting the failing test case, rather than preventing such contradictions through the logical assumptions system."
+      }
+    ],
+    "19": [
+      {
+        "id": "e6ad7cd1-929c-47f9-a66d-02fe98559307",
+        "action_index": 19,
+        "category": "blindly_strategy_switching",
+        "reason": "The core issue was that for m = Symbol('m', even=True), m.is_finite should return True, but instead it returned None. After making modifications in Actions 9–12, the test in Action 14 still showed that the problem was unresolved. However, the agent failed to notice that the fix was ineffective and instead shifted its attention to another failure point, continuing to ignore the original issue."
+      }
+    ],
+    "16": [
+      {
+        "id": "fa213628-382e-49fa-b527-7c2df5cab535",
+        "action_index": 16,
+        "category": "component_coordination",
+        "reason": "The rules of SymPy's assumption system work in coordination between sympy/assumptions/ask.py (get_known_facts) and sympy/core/assumptions.py (_assume_rules). Although the agent correctly added the rule to ask.py, it ignored the corresponding update in core/assumptions.py, resulting in an incomplete or inconsistent state."
+      }
+    ]
+  },
+  "sympy__sympy-17139": {
+    "4": [
+      {
+        "id": "d1d0686b-88cc-43e1-bbf5-ce366317c3ec",
+        "action_index": 4,
+        "category": "insufficient_domain_knowledge",
+        "reason": "The agent's failure stemmed from its lack of understanding of the exact semantics of the is_complex and is_real properties in SymPy, which is a typical example of insufficient domain knowledge. Although it found the correct code location and had the right intent for the fix, it ultimately produced an incorrect implementation due to this technical knowledge gap."
+      }
+    ]
+  },
+  "sympy__sympy-17318": {
+    "5": [
+      {
+        "id": "da6f524a-e694-45a2-9de3-e592e1f7b9dd",
+        "action_index": 5,
+        "category": "error_stack_trace",
+        "reason": "The error stack trace ended at the _split_gcd function in radsimp.py, because it directly raised an IndexError when attempting to access the first element of an empty tuple. The agent faithfully followed the trace to this deepest point and targeted its direct caller, the split_surds function, for the fix. The agent's solution was to add a check in split_surds: if the surds list to be processed was empty, simply return, thereby avoiding the call to _split_gcd that would raise the error."
+      }
+    ],
+    "6": [
+      {
+        "id": "3b0a1b8c-959d-41a4-95cd-a3e8f3ddd524",
+        "action_index": 6,
+        "category": "evasive_repair",
+        "reason": "This only bypassed the crash without addressing the root cause. The true problem lay in the higher-level caller function _sqrt_match (in sqrtdenest.py). That function made an incorrect decision about whether to call split_surds. The original code only checked whether the square of each term in the expression was rational (is_Rational), but for complex numbers like sqrt(4 + 3*I), the square 4 + 3*I is not a positive rational number, meaning the prerequisite conditions for split_surds were not satisfied."
+      }
+    ]
+  },
+  "sympy__sympy-18211": {
+    "8": [
+      {
+        "id": "20789135-334c-4316-814b-c8c7e91cbaff",
+        "action_index": 8,
+        "category": "error_stack_trace",
+        "reason": "The Agent misunderstood the stack trace, treating the solvify function that raised NotImplementedError as the fix point, attempting to suppress the source of the error while ignoring that the error itself was a reasonable signal that the equation could not be solved and should be handled by the upper-level caller. As a result, the Agent modified solvify (Action 9) and the solve_univariate_inequality function that called it (Action 12), leading to a chain of error fixes, instead of adopting a simpler and more localized exception-catching method."
+      }
+    ]
+  },
+  "sympy__sympy-19495": {
+    "7": [
+      {
+        "id": "d54512cf-64f8-45fb-8134-c47a8b0cc6cb",
+        "action_index": 7,
+        "category": "specific_case_overfitting",
+        "reason": "The Agent designed a narrow fix logic targeting the specific input and behavior described in the Issue (ConditionSet containing ImageSet), rather than fundamentally addressing the general behavior of the subs method. The Agent directly returned the substituted base (i.e., ImageSet) instead of a ConditionSet. This 'patch-style' fix allowed the current test case to pass, but it did not solve the fundamental problem of how ConditionSet should correctly reconstruct itself after subs, lacked generality, and altered the expected behavior that subs should return an object of the same type (or its simplified form)."
+      }
+    ],
+    "8": [
+      {
+        "id": "467e498d-f06c-4568-b1c4-c2831ff4586c",
+        "action_index": 8,
+        "category": "reproduction_output_misreading",
+        "reason": "After applying the patch, the Agent reran the reproduction script in Action 9, and the output was exactly the same as the initial error output, proving the patch was ineffective. However, the Agent mistakenly concluded 'Perfect! The fix worked as expected.'"
+      }
+    ]
+  },
+  "sympy__sympy-20154": {
+    "7": [
+      {
+        "id": "5a80f9a7-6301-4461-8987-6274a59cb993",
+        "action_index": 7,
+        "category": "recurring_pattern",
+        "reason": "In the partitions function, there are two identical code blocks that both yield the partition dictionary. The Agent discovered that changing yield ms to yield ms.copy() was necessary to fix the issue. However, the str_replace it used only replaced the second occurrence, leaving the first one (lines 1805–1807) unpatched, resulting in an incomplete fix. The Agent identified the correct solution but failed to apply it to all duplicate instances within the function."
+      }
+    ],
+    "11": [
+      {
+        "id": "0dbb0081-a3d9-4903-9ad9-42be519a7dbf",
+        "action_index": 11,
+        "category": "reproduction_output_misreading",
+        "reason": "This output clearly shows that the first generated dictionary was still mutating (it reflected the final state of the dictionary, i.e., '{1:6}'). The Agent failed to recognize this persistent error and instead declared: 'The fix worked!' Now, both versions provide a unique dictionary for each partition."
+      }
+    ]
+  },
+  "sympy__sympy-20428": {
+    "4": [
+      {
+        "id": "5e6be951-2849-4c32-9c74-8a1324c0a68b",
+        "action_index": 4,
+        "category": "error_stack_trace",
+        "reason": "The stack trace of the issue showed that the failure occurred in the terms_gcd() and primitive() functions, involving files such as polytools.py, polyclasses.py, densebasic.py, and densetools.py. Based on the stack trace, the Agent focused on reviewing and modifying functions in these files (e.g., dmp_strip), directly changing their implementations instead of analyzing why these functions were receiving malformed data."
+      }
+    ],
+    "22": [
+      {
+        "id": "149abc9c-9945-4a3d-a31e-48ec933b3aac",
+        "action_index": 22,
+        "category": "reproduction_output_misreading",
+        "reason": "The Agent mistakenly believed the issue was fully resolved simply because it had fixed a few secondary problems (the is_zero attribute and the terms_gcd crash), while completely ignoring the most critical verification output. This led it to terminate early and submit an incomplete and incorrect fix."
+      }
+    ]
+  },
+  "sympy__sympy-20438": {
+    "14": [
+      {
+        "id": "09668c91-5738-48f4-a3ac-e476bb12b0fd",
+        "action_index": 14,
+        "category": "recurring_pattern",
+        "reason": "After the Agent fixed the issue of the Complement class missing the equals method, it immediately encountered the same error in the EmptySet class. This shows that it only patched the specific instance without recognizing the broader similar problem, which led to the need for a second, symmetric patch."
+      }
+    ],
+    "11": [
+      {
+        "id": "75238fa0-f95a-407c-8cbd-7d9e61e5e5f2",
+        "action_index": 11,
+        "category": "reproduction_output_misreading",
+        "reason": "The output of Eq(b, c).simplify() was an unevaluated Eq object instead of the expected Boolean value True. The Agent's fix merely prevented the program from crashing but did not make simplify successfully evaluate the equality of the sets to True. However, upon seeing that no AttributeError was raised, the Agent mistakenly assumed the fix was successful. This shows that its understanding of a 'fix' was limited to 'no error being raised,' without verifying whether the functionality worked correctly as intended."
+      }
+    ]
+  },
+  "sympy__sympy-20590": {
+    "9": [
+      {
+        "id": "b143746f-03cc-4d20-b3c2-2476cf71d446",
+        "action_index": 9,
+        "category": "non_progressive_iteration",
+        "reason": "After the Agent's initial attempt to fix the issue in the wrong class Expr failed, it fell into a loop of repetitive and ineffective attempts, repeatedly adding __slots__ = () in incorrect places (such as Atom, AtomicExpr, Boolean, Basic). It failed to learn from the failure, did not expand its search to the correct class, and instead continued applying ineffective patches in similarly wrong locations."
+      }
+    ],
+    "6": [
+      {
+        "id": "9c88e0f2-a70d-4e48-bc2b-e1a344f59dcd",
+        "action_index": 6,
+        "category": "inheritance",
+        "reason": "The Agent knew the problem was caused by a missing __slots__ in a parent class but did not fully trace the inheritance chain. It saw class Basic(Printable, metaclass=ManagedProperties) in basic.py, yet did not investigate the Printable class further. Instead, it focused on the more obvious parent and mixin classes, completely overlooking the Printable class, which was the one that actually needed the fix."
+      }
+    ]
+  },
+  "sympy__sympy-21612": {
+    "23": [
+      {
+        "id": "2b04b9e5-ce01-41a7-9a47-0dfce5bebb7b",
+        "action_index": 23,
+        "category": "reproduction_script_failure",
+        "reason": "The Agent modified the convert_frac function in _parse_latex_antlr.py, but the change was unrelated to the nested fraction precedence issue—it was merely a code refactor with no difference in behavior from the failing test. The Agent incorrectly attributed the success of the reproduction script to its own code modification, while in reality, the success came from the resolution of an ANTLR version issue in the environment. Ultimately, it submitted this logically incorrect patch, mistakenly believing the problem was solved."
+      }
+    ],
+    "10": [
+      {
+        "id": "1fa97429-b74a-441e-b178-42469ec6b8d5",
+        "action_index": 10,
+        "category": "keywords_location",
+        "reason": "The Agent went in the wrong direction from the very beginning. The Issue description repeatedly mentioned keywords such as 'Latex parsing' and 'is parsed to,' which strongly suggested that the problem lay in the parsing stage. The Agent faithfully followed this clue and focused all its efforts on the /repo/sympy/parsing/latex/ directory, particularly the _parse_latex_antlr.py file."
+      }
+    ]
+  },
+  "sympy__sympy-21930": {
+    "8": [
+      {
+        "id": "718fe686-9d6e-4bbd-8b0f-5bfdaabb5b74",
+        "action_index": 8,
+        "category": "specific_case_overfitting",
+        "reason": "The Agent's fix only targeted the CreateBoson operator used in the example. During subsequent self-tests of boundary conditions, it also focused solely on Bd and B (Boson operators), without extending the fix to other similar classes in the secondquant module. This demonstrates that the solution and its validation were overfitted to the specific case, lacking generalization."
+      },
+      {
+        "id": "f82ddb56-a062-470f-8027-0ffa8faef9ea",
+        "action_index": 8,
+        "category": "recurring_pattern",
+        "reason": "The Agent discovered the fix pattern in the _latex method, where the returned string needed to be wrapped in braces to correctly handle double superscripts. However, the fix was applied only to CreateBoson and was not extended to CreateFermion and AntiSymmetricTensor, which had the same issue, resulting in other instances of the same pattern being missed."
+      }
+    ]
+  },
+  "sympy__sympy-23413": {
+    "8": [
+      {
+        "id": "a01764dc-9c97-42ea-b37e-735f30177b44",
+        "action_index": 8,
+        "category": "algorithmic_implementation",
+        "reason": "The Agent repeatedly attempted different algorithms but failed to identify the simple error in the original loop condition. It kept replacing it with complex and incorrect algorithms, including wrong column swaps, incorrect zero-row padding, entirely different top-down approaches, and multi-pass bottom-up implementations, none of which matched the correct Hermite normal form algorithm."
+      },
+      {
+        "id": "0005f7f4-ab1b-4405-be01-978d84e3d8c4",
+        "action_index": 8,
+        "category": "non_progressive_iteration",
+        "reason": "The Agent fell into a loop of ineffective modifications. After Action 9 introduced an incorrect algorithm, subsequent actions (13, 16, 19, 21) mainly focused on fixing syntax and type errors it had created, without addressing the core logical problem. This cycle of changes did not bring the Agent any closer to the correct solution."
+      }
+    ],
+    "31": [
+      {
+        "id": "586a5136-fc3b-4050-9625-62d2b567db04",
+        "action_index": 31,
+        "category": "blindly_strategy_switching",
+        "reason": "The Agent was unable to debug the existing approach and blindly switched strategies. It first shifted from a bottom-up algorithm to a top-down one (Action 25), and after that failed, switched back to a new multi-pass bottom-up approach (Action 32), demonstrating a lack of systematic debugging strategy."
+      }
+    ],
+    "25": [
+      {
+        "id": "664eeedd-3ae2-437f-9550-408888a4c113",
+        "action_index": 25,
+        "category": "verification_weakening",
+        "reason": "The original issue described a bug that occurred when using a sequence of flip and transpose operations. The Agent initially included this sequence in the test script (Action 17). However, after it failed, the Agent simplified the test case in Action 26 by directly calling hermite_normal_form, abandoning the flip/transpose logic. As a result, the validation no longer covered the specific conditions described in the issue, thereby weakening the effectiveness of the verification."
+      }
+    ]
+  },
+  "sympy__sympy-24562": {
+    "7": [
+      {
+        "id": "d5b405f6-d001-481b-873c-658d9c5b83ac",
+        "action_index": 7,
+        "category": "control_flow",
+        "reason": "The main mistake in most of the Agent's attempts was a misunderstanding of the function's control flow. The failing test case was Rational('0.5', '100'), where the second argument q was not None. Yet across more than 20 actions, the Agent only modified the if q is None: block, which was never executed under the failing input condition. This demonstrated a fundamental failure in tracing the execution path."
+      },
+      {
+        "id": "763d613f-3835-42ce-a4fd-1583c6144dfa",
+        "action_index": 7,
+        "category": "non_progressive_iteration",
+        "reason": "Due to the control flow error, the Agent fell into a prolonged loop of ineffective attempts. It repeatedly tried different strategies (such as using fractions.Fraction, float, decimal.Decimal, _as_integer_ratio, and recursive calls to Rational), but all were applied to the same incorrect code block. These attempts failed to advance the solution because the targeted block was never executed by the failing test."
+      }
+    ],
+    "35": [
+      {
+        "id": "1fce57fc-3da7-4afb-86b9-225ed58ba0ff",
+        "action_index": 35,
+        "category": "specific_case_overfitting",
+        "reason": "The Agent's final successful strategy was to add a special case at the very top of the function to handle (str, str) inputs. While this resolved the specific issue, it sidestepped the broader logic that actually needed to be fixed."
+      },
+      {
+        "id": "38a9c3f6-c705-40e9-af52-ee465f572bd4",
+        "action_index": 35,
+        "category": "boundary_handling",
+        "reason": "The case of mixed computations between string and numeric types was not considered."
+      }
+    ]
+  },
+  "pytest-dev__pytest-10356": {
+    "10": [
+      {
+        "id": "b96ccb02-f0ba-4fc9-a063-cef031ef07bd",
+        "action_index": 10,
+        "category": "issue_misleading",
+        "reason": "The Agent's fix strategy was clearly influenced by the code example provided in the original Issue description (using the BaseMeta metaclass). It attempted to replicate and integrate this approach, but this introduced additional complexity and import errors, and was eventually abandoned. This shows that the Agent, without fully understanding the context, was misled by an incomplete and not entirely correct solution suggestion."
+      }
+    ],
+    "45": [
+      {
+        "id": "566c1d88-8162-4170-b448-068a97e8b39a",
+        "action_index": 45,
+        "category": "non_progressive_iteration",
+        "reason": "The Agent repeatedly modified the get_unpacked_marks and store_mark functions. For example, in earlier steps it rewrote the logic of get_unpacked_marks multiple times, but all of these changes were based on the mistaken assumption that simply altering the data read/store functions would solve the problem, without considering the full process by which pytest collects and builds test items. Although the attempts were roughly in the right direction, the incomplete logic led to repeated failures."
+      }
+    ]
+  }
+}
