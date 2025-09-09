@@ -36,7 +36,7 @@ We classify observed failures into a taxonomy with 3 phases, 9 categories, and 2
 ![Failure Taxonomy](dataset/Taxonomy_01.png)  
 
 
-**📋 For detailed classification guidelines and annotation procedures, see the complete [Failure Mode Classification Codebook](codebook.pdf)** - a comprehensive manual containing:
+**📋 For detailed classification guidelines, see the complete [Failure Mode Classification Codebook](codebook.pdf)** - a comprehensive manual containing:
 - Detailed definitions for all 25 subcategories
 - Annotation examples 
 
