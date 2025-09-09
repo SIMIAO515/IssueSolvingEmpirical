@@ -105,9 +105,9 @@ We provide an improved tool for exploring the failure data:
 # Basic usage (OpenHands data)
 cd dataset
 # Different agents Visualization
-python dataset/failure_analysis_viewer.py --agent tools
-python dataset/failure_analysis_viewer.py --agent openhands
-python dataset/failure_analysis_viewer.py --agent agentless
+python failure_analysis_viewer.py --agent tools
+python failure_analysis_viewer.py --agent openhands
+python failure_analysis_viewer.py --agent agentless
 ```
 
 
