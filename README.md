@@ -10,7 +10,6 @@ This study conducts an in-depth empirical analysis of failure modes in automated
 
 ```
 Why_LLM_Agents_Fail/
-├── Agent_Fail_in_Issue_Solving.pdf      # Research paper
 ├── codebook.pdf                          # Failure mode classification codebook
 ├── dataset/                              # Annotated failure datasets
 │   ├── annotations_agentless.json       # Agentless failure annotations
@@ -21,7 +20,7 @@ Why_LLM_Agents_Fail/
 │   ├── extracted_log_openhands_points/  # OpenHands execution logs
 │   ├── extracted_log_tools-claude_points/ # Tools Claude execution logs
 │   └── templates/                        # Web interface templates
-└── OpenHands/                           # Expert-Executor implementation
+└── Expert-Executor/                           # Expert-Executor implementation
     └── evaluation/benchmarks/swe_bench/
         ├── EXPERT_HYBRID_README.md      # Expert-Executor documentation
         └── EXPERT_HYBRID_PROMPT.md      # Expert collaboration prompts
@@ -31,34 +30,15 @@ Why_LLM_Agents_Fail/
 
 ### 1. Architectural Failure Patterns
 - **Pipeline models** (like Agentless) primarily fail in **localization** (51.3% of failures)
-- **Agentic models** (like OpenHands, Tools Claude) fail predominantly in **iteration & validation** (49-52% of failures)
+- **Agentic models** (like OpenHands, Tools Claude) fail predominantly in **iteration & validation** 
 - Performance degrades consistently as task complexity increases, especially for multi-file modifications
 
-### 2. Failure Taxonomy
-Our comprehensive taxonomy identifies failures across three phases:
-
-**A. Localization Failures**
-- A1: Issue Misleading - Following incorrect implementation suggestions
-- A2: Superficial Information Matching - Shallow keyword-based localization
-
-**B. Repair Failures**  
-- B1: Fix Strategy Defects - High-level strategic flaws
-- B2: Implementation Details Defects - Technical implementation errors
-- B3: Incomplete Repair - Partial problem resolution
-- B4: Issue Interference - Misleading issue descriptions
-
-**C. Iteration & Validation Failures**
-- C1: Reproduction/Verification Failures - Testing environment issues
-- C2: Iteration Anomalies - Non-progressive loops and strategy switching
-- C3: Context Amnesia - Loss of objective or state tracking
 
 **📋 For detailed classification guidelines and annotation procedures, see the complete [Failure Mode Classification Codebook](codebook.pdf)** - a comprehensive manual containing:
 - Detailed definitions for all 25 subcategories
-- Annotation examples and edge cases
-- Inter-annotator agreement protocols
-- Classification decision trees
+- Annotation examples 
 
-### 3. Root Cause Analysis
+### 2. Root Cause Analysis
 - **65%** of failures stem from **flawed reasoning** leading to cognitive deadlocks
 - **25%** from **knowledge deficiency** (missing context or domain expertise)  
 - **10%** from **environmental friction** (tool usage and setup issues)
@@ -77,8 +57,8 @@ Our proposed collaborative architecture addresses the identified failure pattern
 ### Implementation Details
 The Expert-Executor framework is implemented as an extension to the OpenHands platform:
 
-- **Core Implementation**: See [`OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md`](OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md)
-- **Prompt Engineering**: See [`OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_PROMPT.md`](OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_PROMPT.md)
+- **Core Implementation**: See [`Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md`](Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md)
+- **Prompt Engineering**: See [`Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_PROMPT.md`](Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_PROMPT.md)
 
 ### Results
 - Successfully resolved **22.2%** of previously failed issues (24/108 cases)
@@ -86,7 +66,7 @@ The Expert-Executor framework is implemented as an extension to the OpenHands pl
 - Most effective against dominant failure categories: Fix Strategy Defects, Implementation Details, and Verification Failures
 
 #### Successfully Resolved Instances
-Our Expert-Executor framework successfully resolved the following 24 previously intractable issues:
+Our Expert-Executor framework successfully resolved the following 24 previously intractable issues of sample:
 
 ```
 astropy__astropy-13453     astropy__astropy-14508     django__django-11206
@@ -119,7 +99,7 @@ We provide manually annotated datasets for all three studied tools:
 
 ### Enhanced Failure Analysis Viewer
 
-We provide an improved web-based tool for exploring the failure data:
+We provide an improved tool for exploring the failure data:
 
 ```bash
 # Basic usage (OpenHands data)
@@ -130,12 +110,6 @@ python dataset/failure_analysis_viewer.py --agent openhands
 python dataset/failure_analysis_viewer.py --agent agentless
 ```
 
-### Features
-- **Interactive log exploration** with action-level parsing
-- **Failure mode annotation** and visualization  
-- **Multi-agent support** (OpenHands, Agentless, Tools Claude)
-- **Command-line interface** with flexible configuration
-- **Test statistics integration** showing pass/fail patterns
 
 ### Screenshots
 
@@ -152,7 +126,7 @@ python dataset/failure_analysis_viewer.py --agent agentless
 ### Prerequisites
 
 #### Environment Setup
-Follow the OpenHands setup instructions in [`OpenHands/evaluation/README.md`](OpenHands/evaluation/README.md) for complete environment configuration.
+Follow the OpenHands setup instructions in [`Expert-Executor/evaluation/README.md`](Expert-Executor/evaluation/README.md) for complete environment configuration.
 
 **Basic Requirements:**
 - Python 3.8+
@@ -190,7 +164,7 @@ python failure_analysis_viewer.py --agent tools
 **Setup Expert-Executor Framework:**
 ```bash
 # Navigate to the Expert-Executor implementation
-cd OpenHands/evaluation/benchmarks/swe_bench/
+cd Expert-Executor/evaluation/benchmarks/swe_bench/
 
 # Review setup instructions  
 cat EXPERT_HYBRID_README.md
@@ -233,7 +207,7 @@ python run_infer_expert_hybrid.py \
   --eval-n-limit 50
 ```
 
-**For detailed configuration options**, see [`OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md`](OpenHands/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md)
+**For detailed configuration options**, see [`Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md`](Expert-Executor/evaluation/benchmarks/swe_bench/EXPERT_HYBRID_README.md)
 
 
 
