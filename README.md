@@ -29,9 +29,6 @@ Why_LLM_Agents_Fail/
 ## 📊 Key Findings
 
 ### 1. Architectural Failure Patterns
-- **Pipeline models** (like Agentless) primarily fail in **localization** (51.3% of failures)
-- **Agentic models** (like OpenHands, Tools Claude) fail predominantly in **iteration & validation** 
-- Performance degrades consistently as task complexity increases, especially for multi-file modifications
 
 We classify observed failures into a taxonomy with 3 phases, 9 categories, and 25 subcategories.  
 **Overview of Failure Taxonomy:**
