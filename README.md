@@ -33,6 +33,11 @@ Why_LLM_Agents_Fail/
 - **Agentic models** (like OpenHands, Tools Claude) fail predominantly in **iteration & validation** 
 - Performance degrades consistently as task complexity increases, especially for multi-file modifications
 
+We classify observed failures into a taxonomy with 3 phases, 9 categories, and 25 subcategories.  
+**Overview of Failure Taxonomy:**
+
+![Failure Taxonomy](dataset/Taxonomy_01.png)  
+
 
 **📋 For detailed classification guidelines and annotation procedures, see the complete [Failure Mode Classification Codebook](codebook.pdf)** - a comprehensive manual containing:
 - Detailed definitions for all 25 subcategories
