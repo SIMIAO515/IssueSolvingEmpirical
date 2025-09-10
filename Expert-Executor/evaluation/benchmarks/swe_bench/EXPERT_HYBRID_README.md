@@ -9,7 +9,6 @@ Expert-Hybrid extends the standard SWE-Bench evaluation by adding an expert agen
 - **Dual-agent architecture**: Execution agent + Expert agent
 - **Two intervention modes**: Active consultation + Passive monitoring  
 - **Failure mode prevention**: Detects and corrects tunnel vision, iteration ineffectiveness, and superficial fixes
-- **Full SWE-Bench compatibility**: Drop-in replacement for standard evaluation
 
 ## Architecture
 
@@ -32,34 +31,6 @@ I need expert consultation on [specific question]. Please provide professional g
 
 **Passive Monitoring**: Expert automatically reviews progress every N iterations (default: 25) and provides course correction if needed.
 
-## Implementation
-
-### Core Components
-
-**EvaluationAwareAgent**: Wrapper that adds expert monitoring to any existing agent:
-```python
-class EvaluationAwareAgent:
-    def step(self, state):
-        if self.expert_judge.should_trigger_passive_check(current_iteration):
-            return MessageAction(
-                content=f"PASSIVE CHECK REQUEST: Iteration {current_iteration}",
-                wait_for_response=True
-            )
-        return self.base_agent.step(state)
-```
-
-**ExpertJudge**: Handles expert decision making and response generation:
-```python  
-class ExpertJudge:
-    def __init__(self, problem_statement, check_interval=10, max_checks=3):
-        # Expert system with failure mode prevention prompts
-        
-    def handle_expert_request(self, agent_message, state):
-        # Process active consultation requests
-        
-    def generate_passive_check_message(self, state, current_turn):
-        # Generate automatic expert reviews
-```
 
 ### Enhanced Prompting
 
@@ -78,14 +49,14 @@ The expert agent uses specialized prompts focused on:
 ### Basic Usage
 ```bash
 ./evaluation/benchmarks/swe_bench/scripts/run_infer_expert_hybrid.sh \
-  llm.deepseek HEAD CodeActAgent 50 40 1 princeton-nlp/SWE-bench_Verified test 1 25 10
+  llm.deepseek HEAD CodeActAgent 500 40 1 princeton-nlp/SWE-bench_Verified test 1 25 10
 ```
 
 ### Parameters
 - `llm.deepseek`: LLM configuration for execution agent
 - `HEAD`: Git commit hash
 - `CodeActAgent`: Agent class to use
-- `50`: Number of instances to evaluate  
+- `500`: Number of instances to evaluate  
 - `40`: Maximum iterations per instance
 - `1`: Number of workers
 - `princeton-nlp/SWE-bench_Verified`: Dataset
@@ -103,16 +74,7 @@ export MAX_EXPERT_CHECKS=10           # Maximum passive checks per instance
 export ENABLE_EXPERT_REQUESTS=true   # Enable active consultation
 ```
 
-**Command Line Arguments**:
-```bash
-python run_infer_expert_hybrid.py \
-  --agent-cls CodeActAgent \
-  --llm-config llm.deepseek \
-  --max-iterations 40 \
-  --eval-n-limit 50 \
-  --expert-check-interval 25 \
-  --max-expert-checks 10
-```
+
 
 ## Expert Intervention Examples
 
