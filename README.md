@@ -1,10 +1,10 @@
 # Why LLM Agents Fail: An Empirical Study on Failures in Automated Issue Solving
 
-This repository contains the implementation and datasets for the paper **"Why LLM Agents Fail: An Empirical Study on Failures in Automated Issue Solving"**, which presents the first comprehensive analysis of failure modes in state-of-the-art LLM-based automated issue solving agents.
+This repository contains the implementation and datasets for the paper **"Why LLM Agents Fail: An Empirical Study on Failures in Automated Issue Solving"**, which presents a systematic empirical analysis of failure modes in state-of-the-art LLM-based automated issue solving agents.
 
 ## 📖 Abstract
 
-This study conducts an in-depth empirical analysis of failure modes in automated issue solving using three state-of-the-art LLM-based tools: OpenHands, Agentless, and Tools Claude. Through systematic analysis of 150 failed instances from SWE-Bench-Verified, we develop a comprehensive taxonomy of failure modes comprising 3 primary phases, 9 main categories, and 25 fine-grained subcategories. Our findings reveal distinct architectural failure patterns and propose a collaborative Expert-Executor framework that successfully resolves 22.2% of previously intractable issues.
+This study conducts an in-depth empirical analysis of failure modes in automated issue solving using three representative state-of-the-art LLM-based tools: OpenHands, Agentless, and Tools Claude. Through systematic analysis of 150 failed instances from SWE-Bench-Verified, we develop a comprehensive taxonomy of failure modes comprising 3 primary phases, 9 main categories, and 25 fine-grained subcategories. Our findings reveal distinct architectural failure patterns and propose a collaborative Expert-Executor framework that successfully resolves 22.2% of previously intractable issues.
 
 ## 🏗️ Repository Structure
 
@@ -12,18 +12,25 @@ This study conducts an in-depth empirical analysis of failure modes in automated
 Why_LLM_Agents_Fail/
 ├── codebook.pdf                          # Failure mode classification codebook
 ├── dataset/                              # Annotated failure datasets
-│   ├── annotations_agentless.json       # Agentless failure annotations
-│   ├── annotations_openhands.json       # OpenHands failure annotations  
-│   ├── annotations_tools.json           # Tools Claude failure annotations
-│   ├── failure_analysis_viewer.py       # Enhanced visualization tool
-│   ├── extracted_log_agentless_points/  # Agentless execution logs
-│   ├── extracted_log_openhands_points/  # OpenHands execution logs
+│   ├── annotations_agentless.json        # Agentless failure annotations
+│   ├── annotations_openhands.json        # OpenHands failure annotations
+│   ├── annotations_tools.json            # Tools Claude failure annotations
+│   ├── failure_analysis_viewer.py        # Enhanced visualization tool
+│   ├── extracted_log_agentless_points/   # Agentless execution logs
+│   ├── extracted_log_openhands_points/   # OpenHands execution logs
 │   ├── extracted_log_tools-claude_points/ # Tools Claude execution logs
 │   └── templates/                        # Web interface templates
-└── Expert-Executor/                           # Expert-Executor implementation
+├── results/                              # Per-instance outcomes and derived statistics
+│   └── stage1_swe500/                    # Same-backbone Stage-1 evaluation artifacts
+│       ├── result.json                   # Per-instance success/fail outcomes for 500 issues
+│       ├── stage1_summary.csv            # Success counts and rates by configuration
+│       └── stage1_mcnemar.csv            # Paired McNemar comparisons and confidence intervals
+├── scripts/
+│   └── compute_stage1_results.py         # Recompute Stage-1 summary and McNemar statistics
+└── Expert-Executor/                      # Expert-Executor implementation
     └── evaluation/benchmarks/swe_bench/
-        ├── EXPERT_HYBRID_README.md      # Expert-Executor documentation
-        └── EXPERT_HYBRID_PROMPT.md      # Expert collaboration prompts
+        ├── EXPERT_HYBRID_README.md       # Expert-Executor documentation
+        └── EXPERT_HYBRID_PROMPT.md       # Expert collaboration prompts
 ```
 
 ## 📊 Key Findings
@@ -41,9 +48,9 @@ We classify observed failures into a taxonomy with 3 phases, 9 categories, and 2
 - Annotation examples 
 
 ### 2. Root Cause Analysis
-- **65%** of failures stem from **flawed reasoning** leading to cognitive deadlocks
-- **25%** from **knowledge deficiency** (missing context or domain expertise)  
-- **10%** from **environmental friction** (tool usage and setup issues)
+- **63.9%** of failures stem from **flawed reasoning**, including superficial localization, flawed repair strategies, and cognitive deadlocks
+- **22.9%** from **knowledge deficiency**, such as missing codebase-specific context or domain expertise
+- **13.2%** from **environmental friction**, such as tool usage and reproduction/verification issues
 
 ## 🛠️ Expert-Executor Framework
 
@@ -95,7 +102,10 @@ We provide manually annotated datasets for all three studied tools:
 - `annotations_agentless.json` - Agentless failure mode annotations
 - `annotations_openhands.json` - OpenHands failure mode annotations  
 - `annotations_tools.json` - Tools Claude failure mode annotations
-- `extracted_log_*/` - Complete execution traces and test results
+- `extracted_log_*/` - Execution traces and test results for the qualitative failure analysis
+- `results/stage1_swe500/result.json` - Per-instance Stage-1 success/fail outcomes for statistical verification
+- `results/stage1_swe500/stage1_summary.csv` - Recomputed Stage-1 success rates
+- `results/stage1_swe500/stage1_mcnemar.csv` - Recomputed Stage-1 McNemar comparisons
 
 ## 🖥️ Visualization Tool
 
@@ -160,6 +170,40 @@ cd dataset/
 python failure_analysis_viewer.py --agent tools
 # Navigate to http://localhost:5000
 ```
+
+### Recomputing Stage-1 Statistical Results
+
+We provide per-instance binary outcomes for the same-backbone Stage-1 evaluation on the full 500-instance SWE-Bench-Verified benchmark. These artifacts are intended to support independent verification of the success rates, paired McNemar tests, and confidence intervals reported in the paper.
+
+**Artifacts:**
+
+- [`results/stage1_swe500/result.json`](results/stage1_swe500/result.json): per-instance success/fail outcomes for six configurations: Baseline, Active Only, Passive Only, Self-Reflection, Generic Expert, and Taxonomy Expert.
+- [`scripts/compute_stage1_results.py`](scripts/compute_stage1_results.py): script for recomputing success rates, McNemar contingency tables, p-values, and paired confidence intervals.
+- [`results/stage1_swe500/stage1_summary.csv`](results/stage1_swe500/stage1_summary.csv): derived success counts and rates.
+- [`results/stage1_swe500/stage1_mcnemar.csv`](results/stage1_swe500/stage1_mcnemar.csv): derived paired comparison statistics.
+
+**Run:**
+
+```bash
+python scripts/compute_stage1_results.py \
+  results/stage1_swe500/result.json \
+  --out-dir results/stage1_swe500
+```
+
+The script validates the consistency between each instance's `success`/`fail` lists and its `by_config` field, then recomputes the following Stage-1 results:
+
+| Configuration | Resolved / Total | Success Rate |
+|---|---:|---:|
+| Baseline | 194 / 500 | 38.8% |
+| Active Only | 207 / 500 | 41.4% |
+| Passive Only | 214 / 500 | 42.8% |
+| Self-Reflection | 209 / 500 | 41.8% |
+| Generic Expert | 215 / 500 | 43.0% |
+| Taxonomy Expert | 224 / 500 | 44.8% |
+
+It also recomputes paired McNemar comparisons against the Baseline, including the +6.0% improvement of Taxonomy Expert over Baseline (p = 0.025, 95% CI: [+0.95%, +11.05%]).
+
+**Scope note:** these Stage-1 artifacts are per-instance binary outcomes and derived statistical summaries. They are designed to audit aggregate statistical claims. They do not replace the full raw interaction traces used for the qualitative failure taxonomy.
 
 ### Expert-Executor Evaluation
 
